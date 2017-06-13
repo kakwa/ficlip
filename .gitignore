@@ -32,13 +32,10 @@ cmake_install.cmake
 install_manifest.txt
 
 # compiled exe
-emf2svg-conv
+ficlip-test
 
 # out directory
 out
 
 # external build directory
 external-build
-
-# exceptions
-!tests/resources/filesmasher-master/Makefile

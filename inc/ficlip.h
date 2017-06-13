@@ -21,13 +21,13 @@ typedef struct {
 
 typedef struct {
     FI_SEG_TYPE type;
-    POINT_D *points;
+    FI_POINT_D *points;
 } FI_PATH_SECTION;
 
-typedef struct {
-    PATH_SECTION section;
-    struct _PATH *last;
-    struct _PATH *next;
+typedef struct _FI_PATH {
+    FI_PATH_SECTION section;
+    struct _FI_PATH *last;
+    struct _FI_PATH *next;
 } FI_PATH;
 
 int ficlip(FI_PATH p1, FI_PATH p2, FI_OPS operation);

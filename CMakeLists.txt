@@ -76,7 +76,7 @@ include_directories(
 # Compile the library
 add_library(ficlip
     ${SHARED}
-    src/lib/ficlip.c
+    src/ficlip.c
 )
 
 set_target_properties(ficlip 
