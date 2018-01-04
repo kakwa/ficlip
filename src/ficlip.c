@@ -19,25 +19,26 @@ int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode) {
     return 0;
 }
 
-void fi_free_path(FI_PATH **path) {
-    if ((*path) == NULL) {
+void fi_free_path(FI_PATH *path) {
+    if (path == NULL) {
         return;
     }
-    FI_PATH *tmp1 = (*path);
-    FI_PATH *tmp2 = (*path);
+    FI_PATH *tmp1 = path;
+    FI_PATH *tmp2 = path;
     while (tmp1 != NULL) {
         tmp1 = tmp1->next;
-        free(tmp2->section.points);
+        if(tmp2->section.points != NULL)
+            free(tmp2->section.points);
         free(tmp2);
         tmp2 = tmp1;
     }
-    (*path) = NULL;
 }
 
 /* really bad parser for path declaration, but will make life far easier for
  * testing
  */
 int parse_path(char *in, FI_PATH **out) {
+    *out = NULL;
     int i;
     char *n_start = NULL;
     size_t n_len = 0;

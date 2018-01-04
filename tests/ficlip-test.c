@@ -33,6 +33,7 @@ void test_parse() {
     CU_ASSERT_STRING_EQUAL(out, expected);
     CU_ASSERT(ret == 0);
     free(out);
+    fi_free_path(path);
 }
 
 void test_parse_fail() {
@@ -41,6 +42,7 @@ void test_parse_fail() {
                          "49,10.2 C 50.2,0.567 40,10 5,5.69 Z",
                          &path);
     CU_ASSERT(ret == 1);
+    fi_free_path(path);
 }
 
 void test_empty() {

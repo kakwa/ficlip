@@ -57,7 +57,7 @@ void fi_add_new_seg(FI_PATH **path, FI_SEG_TYPE type);
 
 /* Free a FI_PATH structure
  */
-void fi_free_path(FI_PATH **path);
+void fi_free_path(FI_PATH *path);
 
 /* Draw a FI_PATH in an SVG manner (M x1,y1 L x2,y2 C x3,y3 x4,y4 x5,y5 A x6,y6
  * x7,y7 Z)
