@@ -39,3 +39,6 @@ out
 
 # external build directory
 external-build
+
+# CUnit result
+CUnitAutomated-Results.xml

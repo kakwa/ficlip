@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 
 project (ficlip)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 # Project version (sematic versionning)
 set(ficlip_VERSION_MAJOR 0)
 set(ficlip_VERSION_MINOR 0)
@@ -20,11 +22,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DE2S_VERSION='\"${ficlip_VERSION}\"'")
 
 # Options
 option(DEBUG     "compile with debug symbol"    OFF)
+option(UNITTEST      "compile unit tests"           OFF)
 option(INDEX     "print record indexes"         OFF)
 option(STATIC    "compile statically"           OFF)
 option(USE_CLANG "build application with clang" OFF)
 option(USE_GCC   "build application with gcc"   OFF)
 option(FORCELE   "force little endian architecture"   OFF)
+
+if(UNITTEST)
+    find_package(Cunit REQUIRED)
+endif(UNITTEST)
 
 if(INDEX)
     set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DRECORD_INDEX='true'")
@@ -64,6 +71,7 @@ LINK_DIRECTORIES(
     ${CMAKE_BINARY_DIR}/
     /usr/local/lib
     /usr/lib/
+    ${CUNIT_INCLUDE_DIR}
 )
 
 # headers directories
@@ -85,12 +93,15 @@ set_target_properties(ficlip
     SOVERSION ${ficlip_VERSION_MAJOR}
 )
 
-# Compile the executable
+if(UNITTEST)
+    find_package(Cunit REQUIRED)
 add_executable(ficlip-test tests/ficlip-test.c)
 
 target_link_libraries(ficlip-test
     ficlip
+    ${CUNIT_LIBRARY}
 )
+endif(UNITTEST)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall")
