@@ -7,13 +7,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 #include "ficlip.h"
 
 void fi_point_draw_d(FI_POINT_D pt, FILE *out) {
     fprintf(out, "%.4f,%.4f ", pt.x, pt.y);
 }
 
-int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out) {
+int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode) {
     return 0;
 }
 
@@ -30,6 +32,86 @@ void fi_free_path(FI_PATH **path) {
         tmp2 = tmp1;
     }
     (*path) = NULL;
+}
+
+/* really bad parser for path declaration, but will make life far easier for
+ * testing
+ */
+int parse_path(char *in, FI_PATH **out) {
+    int i;
+    char *n_start = NULL;
+    size_t n_len = 0;
+    bool is_x = 1;
+    int pc = 0;
+
+    FI_PATH *out_current = NULL;
+
+    for (i = 0; i < strlen(in); i++) {
+        switch (in[i]) {
+        case ',':
+        case ' ':
+            if (pc < 3 && n_start != NULL && n_len != 0) {
+                char *tmp = calloc(1, n_len + 1);
+                strncpy(tmp, n_start, n_len);
+                double coord = atof(tmp);
+                free(tmp);
+                n_start = NULL;
+                n_len = 0;
+                if (is_x) {
+                    out_current->last->section.points[pc].x = coord;
+                    is_x = 0;
+                } else {
+                    out_current->last->section.points[pc].y = coord;
+                    is_x = 1;
+                    pc++;
+                }
+            } else {
+                n_start = 0;
+            }
+            break;
+        case 'M':
+            fi_add_new_seg(&out_current, FI_SEG_MOVE);
+            pc = 0;
+            break;
+        case 'L':
+            fi_add_new_seg(&out_current, FI_SEG_LINE);
+            pc = 0;
+            break;
+        case 'A':
+            fi_add_new_seg(&out_current, FI_SEG_ARC);
+            pc = 0;
+            break;
+        case 'C':
+            fi_add_new_seg(&out_current, FI_SEG_BEZIER);
+            pc = 0;
+            break;
+        case 'Z':
+            fi_add_new_seg(&out_current, FI_SEG_END);
+            pc = 0;
+            break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '.':
+            if (n_start == NULL) {
+                n_start = &in[i];
+            }
+            n_len++;
+            break;
+        default:
+            return 1;
+            break;
+        }
+    }
+    (*out) = out_current;
+    return 0;
 }
 
 void fi_draw_path(FI_PATH *in, FILE *out) {
@@ -63,6 +145,14 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
         }
         tmp = tmp->next;
     }
+}
+
+void fi_arc_to_lines(FI_PATH *in, FI_PATH **out) {
+    return;
+}
+
+void fi_bezier_to_lines(FI_PATH *in, FI_PATH **out) {
+    return;
 }
 
 void fi_copy_path(FI_PATH *in, FI_PATH **out) {
