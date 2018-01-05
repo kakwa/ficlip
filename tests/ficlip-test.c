@@ -3,8 +3,61 @@
 #include "ficlip.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <argp.h>
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
+#include <CUnit/Console.h>
+#include <CUnit/Automated.h>
+#include <CUnit/CUCurses.h>
+
+
+static char args_doc[] = "[-b] [-a] [-i] [-c]";
+
+static char doc[] = "\nUnit Tests";
+
+static struct argp_option options[] = {
+    {"basic", 'b', 0, 0, "Run in basic mode (default)"},
+    {"automated", 'a', 0, 0, "Run in automated mode (with xml)"},
+    {"interactive", 'i', 0, 0, "Run in interactive mode (console)"},
+    {"curses", 'c', 0, 0, "Run in interactive mode (ncurses)"},
+    {0}};
+
+
+struct arguments {
+    char *args[2]; /* arg1 & arg2 */
+    bool basic;
+    bool automated;
+    bool interactive;
+    bool curses;
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    /* Get the input argument from argp_parse, which we
+       know is a pointer to our arguments structure. */
+    struct arguments *arguments = (struct arguments *)state->input;
+
+    switch (key) {
+    case 'b':
+        arguments->basic = 1;
+        break;
+    case 'a':
+        arguments->automated = 1;
+        break;
+    case 'i':
+        arguments->interactive = 1;
+        break;
+    case 'c':
+        arguments->curses = 1;
+        break;
+    default:
+        return ARGP_ERR_UNKNOWN;
+    }
+    return 0;
+}
+
+/* Our argp parser. */
+static struct argp argp = {options, parse_opt, args_doc, doc};
 
 void test_parse() {
     FI_PATH *path;
@@ -49,8 +102,19 @@ void test_empty() {
     return;
 }
 
-int main() {
+int main(int argc, char **argv) {
+    struct arguments args = {0};
+    argp_parse(&argp, argc, argv, 0, 0, &args);
+
+    if(!(args.basic ||
+         args.automated ||
+         args.interactive ||
+         args.curses))
+         args.basic = 1;
+
     CU_pSuite pSuite = NULL;
+
+
 
     /* initialize the CUnit test registry */
     if (CUE_SUCCESS != CU_initialize_registry())
@@ -58,7 +122,7 @@ int main() {
 
     /* add a suite to the registry */
     // pSuite = CU_add_suite("FICLIP", init_suite1, clean_suite1);
-    pSuite = CU_add_suite("FICLIP", NULL, NULL);
+    pSuite = CU_add_suite("path parse & print", NULL, NULL);
     if (NULL == pSuite) {
         CU_cleanup_registry();
         return CU_get_error();
@@ -68,15 +132,50 @@ int main() {
     if ((NULL == CU_add_test(pSuite, "test of fi_draw_path()", test_parse)) ||
         (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error)",
                              test_parse_fail)) ||
-        (NULL == CU_add_test(pSuite, "place holder 2", test_empty))) {
+        (NULL == CU_add_test(pSuite, "place holder 1", test_empty))) {
         CU_cleanup_registry();
         return CU_get_error();
     }
 
+    pSuite = CU_add_suite("convert to segments", NULL, NULL);
+    if (NULL == pSuite) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    /* add the tests to the suite */
+    if ((NULL == CU_add_test(pSuite, "place holder 2", test_empty)) ||
+        (NULL == CU_add_test(pSuite, "place holder 3", test_empty))) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    pSuite = CU_add_suite("clipping", NULL, NULL);
+    if (NULL == pSuite) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    /* add the tests to the suite */
+    if ((NULL == CU_add_test(pSuite, "place holder 4", test_empty)) ||
+        (NULL == CU_add_test(pSuite, "place holder 5", test_empty))) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+
+
     /* Run all tests using the CUnit Basic interface */
-    CU_basic_set_mode(CU_BRM_VERBOSE);
-    CU_basic_run_tests();
-    // CU_automated_run_tests();
+    //CU_basic_set_mode(CU_BRM_VERBOSE);
+    if(args.basic)
+        CU_basic_run_tests();
+    if(args.automated)
+        CU_automated_run_tests();
+    if(args.interactive)
+        CU_console_run_tests();
+    if(args.curses)
+        CU_curses_run_tests();
+
     CU_cleanup_registry();
     return CU_get_error();
 }
