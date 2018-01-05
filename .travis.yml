@@ -49,4 +49,4 @@ language: cpp
 script: cmake . -DUNITTEST=ON $CMAKE_ARG && make && $LAST_CMD
 
 after_success:
-  - if [[ "$N" == "GCOV" ]];then ~/.local/bin/coveralls --exclude tests --exclude CMakeFiles --gcov-options '\-lp';fi
+  - if [[ "$N" == "GCOV" ]];then ~/.local/bin/coveralls --exclude tests --gcov-options '\-lp';fi
