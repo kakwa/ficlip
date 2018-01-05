@@ -42,3 +42,6 @@ external-build
 
 # CUnit result
 CUnitAutomated-Results.xml
+
+# coverage results
+coverage
