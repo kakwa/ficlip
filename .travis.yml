@@ -9,8 +9,8 @@ matrix:
       dist: trusty
       env:
           N=GCOV
-          CMAKE_ARG=-DGCOV=ON
-          LAST_CMD=make coverage
+          CMAKE_ARG="-DGCOV=ON"
+          LAST_CMD="make coverage"
     - os: linux
       dist: trusty
       env:
