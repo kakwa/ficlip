@@ -4,15 +4,18 @@ matrix:
       dist: trusty
       env:
           N=VALGRIND
-          VG_CMD=./tests/valgrind_run.sh
+          LAST_CMD=./tests/valgrind_run.sh ./ficlip-test
     - os: linux
       dist: trusty
       env:
           N=GCOV
+          CMAKE_ARG=-DGCOV=ON
+          LAST_CMD=make coverage
     - os: linux
       dist: trusty
       env:
           N=BASE
+          LAST_CMD=true
 #    - os: osx
 #      env:
 #          N=OSX
@@ -24,6 +27,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install valgrind; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libxml2; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cunit; fi
+  - pip install --user cpp-coveralls
 
 addons:
   apt:
@@ -36,9 +40,13 @@ addons:
     - libc6-dev
     - gcc
     - g++
+    - lcov
 
 language: cpp
 
 compiler: clang
 
-script: cmake . -DUNITTEST=ON && make && $VG_CMD ./ficlip-test
+script: cmake . -DUNITTEST=ON $CMAKE_ARG && make && $LAST_CMD
+
+after_success:
+  - if [[ "$N" == "GCOV" ]];then ~/.local/bin/coveralls --exclude tests --gcov-options '\-lp';fi
