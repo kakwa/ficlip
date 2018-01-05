@@ -44,7 +44,7 @@ addons:
 
 language: cpp
 
-compiler: clang
+#compiler: clang
 
 script: cmake . -DUNITTEST=ON $CMAKE_ARG && make && $LAST_CMD
 
