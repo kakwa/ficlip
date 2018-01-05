@@ -87,6 +87,37 @@ void test_parse() {
     fi_free_path(path);
 }
 
+void test_copy() {
+    FI_PATH *in;
+    int ret = parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
+                         "49,10.2 C 50.2,0.567 40,10 5,5.69 Z",
+                         &in);
+    CU_ASSERT(ret == 0);
+    FI_PATH *out;
+
+    fi_copy_path(in, &out);
+
+    FILE *stream;
+    char *sout;
+    char *sin;
+    size_t len;
+
+    stream = open_memstream(&sout, &len);
+    fi_draw_path(in, stream);
+    fflush(stream);fclose(stream);
+
+    stream = open_memstream(&sin, &len);
+    fi_draw_path(out, stream);
+    fflush(stream); fclose(stream);
+
+    CU_ASSERT_STRING_EQUAL(out, in);
+
+    free(sout);
+    fi_free_path(out);
+    free(sin);
+    fi_free_path(in);
+}
+
 void test_parse_fail() {
     FI_PATH *path;
     int ret = parse_path("MCRAP 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
@@ -115,7 +146,7 @@ int main(int argc, char **argv) {
 
     /* add a suite to the registry */
     // pSuite = CU_add_suite("FICLIP", init_suite1, clean_suite1);
-    pSuite = CU_add_suite("path parse & print", NULL, NULL);
+    pSuite = CU_add_suite("path utils", NULL, NULL);
     if (NULL == pSuite) {
         CU_cleanup_registry();
         return CU_get_error();
@@ -125,7 +156,7 @@ int main(int argc, char **argv) {
     if ((NULL == CU_add_test(pSuite, "test of fi_draw_path()", test_parse)) ||
         (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error)",
                              test_parse_fail)) ||
-        (NULL == CU_add_test(pSuite, "place holder 1", test_empty))) {
+        (NULL == CU_add_test(pSuite, "fi_copy_path", test_copy))) {
         CU_cleanup_registry();
         return CU_get_error();
     }
