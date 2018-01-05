@@ -20,17 +20,13 @@ int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode) {
 }
 
 void fi_free_path(FI_PATH *path) {
-    if (path == NULL) {
-        return;
-    }
-    FI_PATH *tmp1 = path;
-    FI_PATH *tmp2 = path;
-    while (tmp1 != NULL) {
-        tmp1 = tmp1->next;
-        if(tmp2->section.points != NULL)
-            free(tmp2->section.points);
-        free(tmp2);
-        tmp2 = tmp1;
+    FI_PATH *tmp = NULL;
+    while (path != NULL) {
+        tmp = path;
+        path = path->next;
+        if(tmp->section.points != NULL)
+            free(tmp->section.points);
+        free(tmp);
     }
 }
 
@@ -107,6 +103,7 @@ int parse_path(char *in, FI_PATH **out) {
             n_len++;
             break;
         default:
+            (*out) = out_current;
             return 1;
             break;
         }
