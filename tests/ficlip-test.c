@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
 
 
     /* Run all tests using the CUnit Basic interface */
-    //CU_basic_set_mode(CU_BRM_VERBOSE);
+    CU_basic_set_mode(CU_BRM_VERBOSE);
     if(args.basic)
         CU_basic_run_tests();
     if(args.automated)
@@ -176,6 +176,8 @@ int main(int argc, char **argv) {
     if(args.curses)
         CU_curses_run_tests();
 
+    //int ret = CU_get_error();
+    int ret = CU_get_number_of_failures();
     CU_cleanup_registry();
-    return CU_get_error();
+    return ret;
 }
