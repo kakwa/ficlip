@@ -4,7 +4,7 @@ matrix:
       dist: trusty
       env:
           N=VALGRIND
-          LAST_CMD=./tests/valgrind_run.sh ./ficlip-test
+          LAST_CMD=./tests/valgrind_run.sh
     - os: linux
       dist: trusty
       env:
