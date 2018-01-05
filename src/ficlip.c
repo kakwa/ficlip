@@ -103,7 +103,7 @@ int parse_path(char *in, FI_PATH **out) {
             n_len++;
             break;
         default:
-            (*out) = out_current;
+            fi_free_path(out_current);
             return 1;
             break;
         }
