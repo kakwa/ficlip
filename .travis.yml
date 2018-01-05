@@ -13,9 +13,9 @@ matrix:
       dist: trusty
       env:
           N=BASE
-    - os: osx
-      env:
-          N=OSX
+#    - os: osx
+#      env:
+#          N=OSX
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcode-select --install;true; fi
