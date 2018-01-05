@@ -24,7 +24,7 @@ void fi_free_path(FI_PATH *path) {
     while (path != NULL) {
         tmp = path;
         path = path->next;
-        if(tmp->section.points != NULL)
+        if (tmp->section.points != NULL)
             free(tmp->section.points);
         free(tmp);
     }

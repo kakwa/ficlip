@@ -11,7 +11,6 @@
 #include <CUnit/Automated.h>
 #include <CUnit/CUCurses.h>
 
-
 static char args_doc[] = "[-b] [-a] [-i] [-c]";
 
 static char doc[] = "\nUnit Tests";
@@ -22,7 +21,6 @@ static struct argp_option options[] = {
     {"interactive", 'i', 0, 0, "Run in interactive mode (console)"},
     {"curses", 'c', 0, 0, "Run in interactive mode (ncurses)"},
     {0}};
-
 
 struct arguments {
     char *args[2]; /* arg1 & arg2 */
@@ -106,15 +104,10 @@ int main(int argc, char **argv) {
     struct arguments args = {0};
     argp_parse(&argp, argc, argv, 0, 0, &args);
 
-    if(!(args.basic ||
-         args.automated ||
-         args.interactive ||
-         args.curses))
-         args.basic = 1;
+    if (!(args.basic || args.automated || args.interactive || args.curses))
+        args.basic = 1;
 
     CU_pSuite pSuite = NULL;
-
-
 
     /* initialize the CUnit test registry */
     if (CUE_SUCCESS != CU_initialize_registry())
@@ -163,20 +156,18 @@ int main(int argc, char **argv) {
         return CU_get_error();
     }
 
-
-
     /* Run all tests using the CUnit Basic interface */
     CU_basic_set_mode(CU_BRM_VERBOSE);
-    if(args.basic)
+    if (args.basic)
         CU_basic_run_tests();
-    if(args.automated)
+    if (args.automated)
         CU_automated_run_tests();
-    if(args.interactive)
+    if (args.interactive)
         CU_console_run_tests();
-    if(args.curses)
+    if (args.curses)
         CU_curses_run_tests();
 
-    //int ret = CU_get_error();
+    // int ret = CU_get_error();
     int ret = CU_get_number_of_failures();
     CU_cleanup_registry();
     return ret;
