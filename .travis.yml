@@ -31,7 +31,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install valgrind; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libxml2; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cunit; fi
-  - pip install --user cpp-coveralls
+  - if [[ "$N" == "GCOV" ]]; then pip install --user cpp-coveralls; fi
 
 addons:
   apt:
