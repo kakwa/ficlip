@@ -4,21 +4,25 @@ matrix:
       dist: trusty
       env:
           N=VALGRIND
+          CMAKE_ARG="-DUNITTEST=ON"
           LAST_CMD=./tests/valgrind_run.sh
     - os: linux
       dist: trusty
       env:
           N=GCOV
-          CMAKE_ARG="-DGCOV=ON"
+          CMAKE_ARG="-DUNITTEST=ON -DGCOV=ON"
           LAST_CMD="make coverage"
     - os: linux
       dist: trusty
       env:
           N=BASE
+          CMAKE_ARG="-DUNITTEST=ON"
           LAST_CMD=true
-#    - os: osx
-#      env:
-#          N=OSX
+    - os: osx
+      env:
+          N=OSX
+          CMAKE_ARG=""
+          LAST_CMD=true
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then xcode-select --install;true; fi
@@ -46,7 +50,7 @@ language: cpp
 
 #compiler: clang
 
-script: cmake . -DUNITTEST=ON $CMAKE_ARG && make && $LAST_CMD
+script: cmake . $CMAKE_ARG && make && $LAST_CMD
 
 after_success:
   - if [[ "$N" == "GCOV" ]];then ~/.local/bin/coveralls --exclude tests --gcov-options '\-lp';fi
