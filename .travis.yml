@@ -53,4 +53,4 @@ language: cpp
 script: cmake . $CMAKE_ARG && make && $LAST_CMD
 
 after_success:
-  - if [[ "$N" == "GCOV" ]];then ~/.local/bin/coveralls --exclude tests --gcov-options '\-lp';fi
+  - if [[ "$N" == "GCOV" ]];then ~/.local/bin/coveralls  -E '.*tests.*'  -E '.*CMakeFiles.*' --gcov-options '\-lp';fi
