@@ -113,6 +113,37 @@ int parse_path(char *in, FI_PATH **out) {
     return 0;
 }
 
+void fi_start_svg_doc(FILE *out, double width, double height) {
+    fprintf(out,
+            "<?xml version=\"1.0\"  encoding=\"UTF-8\" standalone=\"no\"?>");
+    fprintf(out, "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" "
+                 "xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"%.4f\" "
+                 "height=\"%.4f\">",
+            width, height);
+    return;
+}
+
+void fi_end_svg_doc(FILE *out) {
+    fprintf(out, "</svg>");
+    return;
+}
+
+void fi_start_svg_path(FILE *out) {
+    fprintf(out, "<path d=\"");
+    return;
+}
+
+void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
+                     char *fill_color) {
+    fprintf(out, "\" stroke-width=\"%.4fpx\" ", stroke_width);
+    if (stroke_color)
+        fprintf(out, "stroke=\"%s\" ", stroke_color);
+    if (fill_color)
+        fprintf(out, "fill=\"%s\" ", fill_color);
+    fprintf(out, " />");
+    return;
+}
+
 void fi_draw_path(FI_PATH *in, FILE *out) {
     FI_PATH *tmp = in;
     while (tmp != NULL) {

@@ -59,11 +59,6 @@ void fi_add_new_seg(FI_PATH **path, FI_SEG_TYPE type);
  */
 void fi_free_path(FI_PATH *path);
 
-/* Draw a FI_PATH in an SVG manner (M x1,y1 L x2,y2 C x3,y3 x4,y4 x5,y5 A x6,y6
- * x7,y7 Z)
- */
-void fi_draw_path(FI_PATH *in, FILE *out);
-
 /* Copy a FI_PATH
  */
 void fi_copy_path(FI_PATH *in, FI_PATH **out);
@@ -80,8 +75,36 @@ void fi_arc_to_lines(FI_PATH *in, FI_PATH **out);
  */
 void fi_arc_to_lines(FI_PATH *in, FI_PATH **out);
 
+/* Use at your own risks the following function (used for testing) */
+
 /* Rough function to parse an SVG manner path string to create a FI_PATH
  */
 int parse_path(char *in, FI_PATH **out);
+
+/* Draw a FI_PATH in an SVG manner (M x1,y1 L x2,y2 C x3,y3 x4,y4 x5,y5 A x6,y6
+ * x7,y7 Z)
+ */
+void fi_draw_path(FI_PATH *in, FILE *out);
+
+/* start an svg document
+ *
+ */
+void fi_start_svg_doc(FILE *out, double width, double height);
+
+/* end an svg document
+ *
+ */
+void fi_end_svg_doc(FILE *out);
+
+/* start an svg path
+ *
+ */
+void fi_start_svg_path(FILE *out);
+
+/* end an svg path
+ *
+ */
+void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
+                     char *fill_color);
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
