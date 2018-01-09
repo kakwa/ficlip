@@ -86,6 +86,7 @@ int parse_path(char *in, FI_PATH **out) {
             fi_add_new_seg(&out_current, FI_SEG_END);
             pc = 0;
             break;
+        case '-':
         case '0':
         case '1':
         case '2':
