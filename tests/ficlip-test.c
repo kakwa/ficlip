@@ -87,6 +87,53 @@ void test_parse() {
     fi_free_path(path);
 }
 
+void test_bezier2seg() {
+    FI_PATH *path;
+    int ret = parse_path(
+        "M 86.934523,78.529761 C 147.41071,143.54167 96.761905,262.98214 "
+        "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
+        "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
+        "60.47619,82.309522 C 23.434524,55.851189 79.374999,35.440477 "
+        "79.374999,35.440477 Z",
+        &path);
+
+    FILE *stream;
+    char *out;
+    size_t len;
+    stream = open_memstream(&out, &len);
+    if (stream == NULL) {
+        printf("Failed to allocate output stream\n");
+        return;
+    }
+
+    fi_start_svg_doc(stream, 300, 300);
+    fi_start_svg_path(stream);
+
+    fi_draw_path(path, stream);
+
+    fi_end_svg_path(stream, 2, "red", "none");
+
+    fi_linearize(&path);
+
+    fi_start_svg_path(stream);
+    fi_draw_path(path, stream);
+    fi_end_svg_path(stream, 1, "black", "none");
+
+    fi_end_svg_doc(stream);
+    // fi_draw_path(path, stdout);
+
+    fflush(stream);
+    fclose(stream);
+
+    FILE *out_file = fopen("test_1.svg", "w+");
+    fprintf(out_file, "%s", out);
+    fclose(out_file);
+    free(out);
+
+    CU_ASSERT(ret == 0);
+    fi_free_path(path);
+}
+
 void test_copy() {
     FI_PATH *in;
     int ret = parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
@@ -104,11 +151,13 @@ void test_copy() {
 
     stream = open_memstream(&sout, &len);
     fi_draw_path(in, stream);
-    fflush(stream);fclose(stream);
+    fflush(stream);
+    fclose(stream);
 
     stream = open_memstream(&sin, &len);
     fi_draw_path(out, stream);
-    fflush(stream); fclose(stream);
+    fflush(stream);
+    fclose(stream);
 
     CU_ASSERT_STRING_EQUAL(out, in);
 
@@ -168,7 +217,8 @@ int main(int argc, char **argv) {
     }
 
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "place holder 2", test_empty)) ||
+    if ((NULL == CU_add_test(pSuite, "test of bezier curve to segment",
+                             test_bezier2seg)) ||
         (NULL == CU_add_test(pSuite, "place holder 3", test_empty))) {
         CU_cleanup_registry();
         return CU_get_error();
