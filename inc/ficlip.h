@@ -75,6 +75,10 @@ void fi_arc_to_lines(FI_PATH *in, FI_PATH **out);
  */
 void fi_arc_to_lines(FI_PATH *in, FI_PATH **out);
 
+/* Convert a "complex" path (arc and bezier) to a series of segments
+ */
+void fi_linearize(FI_PATH **in);
+
 /* Use at your own risks the following function (used for testing) */
 
 /* Rough function to parse an SVG manner path string to create a FI_PATH

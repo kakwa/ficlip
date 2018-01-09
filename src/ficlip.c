@@ -185,6 +185,10 @@ void fi_bezier_to_lines(FI_PATH *in, FI_PATH **out) {
     return;
 }
 
+void fi_linearize(FI_PATH **in) {
+    return;
+}
+
 void fi_copy_path(FI_PATH *in, FI_PATH **out) {
     FI_PATH *tmp = in;
     FI_PATH *out_current = NULL;
