@@ -67,13 +67,17 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out);
  */
 void fi_offset_path(FI_PATH *in, FI_POINT_D pt);
 
+/* replace the first point of old with the new segment
+ */
+void fi_replace_path(FI_PATH *old, FI_PATH *new);
+
 /* Convert elliptic arc to a series of segments
  */
-void fi_arc_to_lines(FI_PATH *in, FI_PATH **out);
+void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
 
 /* Convert a quadratic bezier curve to a series of segments
  */
-void fi_arc_to_lines(FI_PATH *in, FI_PATH **out);
+void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
 
 /* Convert a "complex" path (arc and bezier) to a series of segments
  */

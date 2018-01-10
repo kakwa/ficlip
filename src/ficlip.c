@@ -177,15 +177,64 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
     }
 }
 
-void fi_arc_to_lines(FI_PATH *in, FI_PATH **out) {
+// converts one arc to segments
+void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     return;
 }
 
-void fi_bezier_to_lines(FI_PATH *in, FI_PATH **out) {
+// converts one cubic bezier curve to segments
+void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     return;
 }
 
 void fi_linearize(FI_PATH **in) {
+    FI_PATH *tmp = *in;
+    FI_POINT_D last_ref_point;
+    last_ref_point.x = 0;
+    last_ref_point.y = 0;
+    if (tmp->section.type == FI_SEG_ARC || tmp->section.type == FI_SEG_BEZIER) {
+        // FIXME
+        // do some stuff to convert the first record
+        return;
+    }
+
+    while (tmp != NULL) {
+        FI_SEG_TYPE type = tmp->section.type;
+        FI_POINT_D *pt = tmp->section.points;
+        FI_PATH *new_seg = NULL;
+        switch (type) {
+        case FI_SEG_END:
+            last_ref_point.x = 0;
+            last_ref_point.y = 0;
+            break;
+        case FI_SEG_MOVE:
+            last_ref_point.x = pt[0].x;
+            last_ref_point.y = pt[0].y;
+            break;
+        case FI_SEG_LINE:
+            last_ref_point.x = pt[0].x;
+            last_ref_point.y = pt[0].y;
+            break;
+        case FI_SEG_ARC:
+            // FIXME
+            // It's probably false but it doesn't crash too much
+            fi_arc_to_lines(last_ref_point, pt, &new_seg);
+            last_ref_point.x = pt[1].x;
+            last_ref_point.y = pt[1].y;
+            fi_replace_path(tmp, new_seg);
+            break;
+        case FI_SEG_BEZIER:
+            fi_bezier_to_lines(last_ref_point, pt, &new_seg);
+            last_ref_point.x = pt[2].x;
+            last_ref_point.y = pt[2].y;
+            fi_replace_path(tmp, new_seg);
+            break;
+        }
+        tmp = tmp->next;
+    }
+}
+
+void fi_replace_path(FI_PATH *old, FI_PATH *new) {
     return;
 }
 
