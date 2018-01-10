@@ -44,6 +44,7 @@ typedef struct _FI_PATH {
     FI_PATH_SECTION section;
     struct _FI_PATH *last;
     struct _FI_PATH *next;
+    struct _FI_PATH *prev;
 } FI_PATH;
 
 /* Build the clipping path from pathes "p1" and "p2" with opetration "ops"
