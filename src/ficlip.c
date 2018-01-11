@@ -134,12 +134,14 @@ void fi_start_svg_path(FILE *out) {
 }
 
 void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
-                     char *fill_color) {
+                     char *fill_color, char *fill_opacity) {
     fprintf(out, "\" stroke-width=\"%.4fpx\" ", stroke_width);
     if (stroke_color)
         fprintf(out, "stroke=\"%s\" ", stroke_color);
     if (fill_color)
         fprintf(out, "fill=\"%s\" ", fill_color);
+    if (fill_opacity)
+        fprintf(out, "fill-opacity=\"%s\" ", fill_opacity);
     fprintf(out, " />");
     return;
 }

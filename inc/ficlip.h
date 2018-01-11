@@ -118,6 +118,6 @@ void fi_start_svg_path(FILE *out);
  *
  */
 void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
-                     char *fill_color);
+                     char *fill_color, char *fill_opacity);
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

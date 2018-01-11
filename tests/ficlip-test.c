@@ -169,13 +169,13 @@ void test_bezier2seg() {
 
     fi_draw_path(path, stream);
 
-    fi_end_svg_path(stream, 2, "red", "none");
+    fi_end_svg_path(stream, 2, "red", "none", NULL);
 
     fi_linearize(&path);
 
     fi_start_svg_path(stream);
     fi_draw_path(path, stream);
-    fi_end_svg_path(stream, 1, "black", "none");
+    fi_end_svg_path(stream, 1, "black", "none", NULL);
 
     fi_end_svg_doc(stream);
     // fi_draw_path(path, stdout);
