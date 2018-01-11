@@ -327,6 +327,7 @@ void fi_add_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
         new_path->last = new_path;
     } else {
         (*path)->last->next = new_path;
+        new_path->prev = (*path)->last;
         (*path)->last = new_path;
     }
 }

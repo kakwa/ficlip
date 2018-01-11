@@ -90,6 +90,10 @@ void fi_linearize(FI_PATH **in);
  */
 int parse_path(char *in, FI_PATH **out);
 
+/* Draw a point (x,y format)
+ */
+void fi_point_draw_d(FI_POINT_D pt, FILE *out);
+
 /* Draw a FI_PATH in an SVG manner (M x1,y1 L x2,y2 C x3,y3 x4,y4 x5,y5 A x6,y6
  * x7,y7 Z)
  */

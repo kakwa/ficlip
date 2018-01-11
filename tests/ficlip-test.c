@@ -87,6 +87,64 @@ void test_parse() {
     fi_free_path(path);
 }
 
+void test_reverse() {
+    FI_PATH *path;
+    int ret = parse_path("M 1,1 L 2,2 L 3,3 A 4,4 "
+                         "5,5 C 6,6 7,7 8,8 Z",
+                         &path);
+
+    FI_PATH *tmp = path->last;
+
+    FILE *out;
+    char *sout;
+    size_t len;
+    out = open_memstream(&sout, &len);
+    if (out == NULL) {
+        printf("Failed to allocate output stream\n");
+        return;
+    }
+
+    while (tmp != NULL) {
+        FI_SEG_TYPE type = tmp->section.type;
+        FI_POINT_D *pt = tmp->section.points;
+        switch (type) {
+        case FI_SEG_END:
+            fprintf(out, "Z ");
+            break;
+        case FI_SEG_MOVE:
+            fprintf(out, "M ");
+            fi_point_draw_d(pt[0], out);
+            break;
+        case FI_SEG_LINE:
+            fprintf(out, "L ");
+            fi_point_draw_d(pt[0], out);
+            break;
+        case FI_SEG_ARC:
+            fprintf(out, "A ");
+            fi_point_draw_d(pt[0], out);
+            fi_point_draw_d(pt[1], out);
+            break;
+        case FI_SEG_BEZIER:
+            fprintf(out, "C ");
+            fi_point_draw_d(pt[0], out);
+            fi_point_draw_d(pt[1], out);
+            fi_point_draw_d(pt[2], out);
+            break;
+        }
+        tmp = tmp->prev;
+    }
+    fflush(out);
+    fclose(out);
+
+    const char *expected = "Z C 6.0000,6.0000 7.0000,7.0000 8.0000,8.0000 A "
+                           "4.0000,4.0000 5.0000,5.0000 L 3.0000,3.0000 L "
+                           "2.0000,2.0000 M 1.0000,1.0000 ";
+    CU_ASSERT(ret == 0);
+    CU_ASSERT_STRING_EQUAL(sout, expected);
+    free(sout);
+    fi_free_path(path);
+}
+
 void test_bezier2seg() {
     FI_PATH *path;
     int ret = parse_path(
@@ -205,6 +263,8 @@ int main(int argc, char **argv) {
     if ((NULL == CU_add_test(pSuite, "test of fi_draw_path()", test_parse)) ||
         (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error)",
                              test_parse_fail)) ||
+        (NULL == CU_add_test(pSuite, "test reverse list", test_reverse)) ||
+
         (NULL == CU_add_test(pSuite, "fi_copy_path", test_copy))) {
         CU_cleanup_registry();
         return CU_get_error();
