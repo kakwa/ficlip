@@ -10,6 +10,26 @@
 #include <string.h>
 #include <stdbool.h>
 #include "ficlip.h"
+#include <math.h>
+
+/* A little macro magic to compute a bezier curve point
+ * This is the parametric form of the bezier curve
+ *
+ * P0 -> start point of the bezier curve
+ * P1 -> first control point
+ * P2 -> second control point
+ * P3 -> end point of the bezier curve
+ * c  -> coordinate (x or y)
+ * t  -> parameter (must be in [0,1]
+ */
+#define BEZIER_POINT(P0, P1, P2, P3, c, t)                                     \
+    P0.c *pow((1 - t), 3) + 3 * P1.c *t *pow((1 - t), 2) +                     \
+        3 * P2.c *pow(t, 2) * (1 - t) + P3.c *pow(t, 3)
+
+/* Resolution of the bezier curve transformation (number of segments used to
+ * approximate the bezier curve)
+ */
+#define BEZIER_RES 100
 
 void fi_point_draw_d(FI_POINT_D pt, FILE *out) {
     fprintf(out, "%.4f,%.4f ", pt.x, pt.y);
@@ -115,16 +135,16 @@ int parse_path(char *in, FI_PATH **out) {
 
 void fi_start_svg_doc(FILE *out, double width, double height) {
     fprintf(out,
-            "<?xml version=\"1.0\"  encoding=\"UTF-8\" standalone=\"no\"?>");
+            "<?xml version=\"1.0\"  encoding=\"UTF-8\" standalone=\"no\"?>\n");
     fprintf(out, "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" "
                  "xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"%.4f\" "
-                 "height=\"%.4f\">",
+                 "height=\"%.4f\">\n",
             width, height);
     return;
 }
 
 void fi_end_svg_doc(FILE *out) {
-    fprintf(out, "</svg>");
+    fprintf(out, "</svg>\n");
     return;
 }
 
@@ -142,7 +162,7 @@ void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
         fprintf(out, "fill=\"%s\" ", fill_color);
     if (fill_opacity)
         fprintf(out, "fill-opacity=\"%s\" ", fill_opacity);
-    fprintf(out, " />");
+    fprintf(out, " />\n");
     return;
 }
 
@@ -181,11 +201,26 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
 
 // converts one arc to segments
 void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
+    fi_add_new_seg(out, FI_SEG_LINE);
+    (*out)->section.points[0].x = in[1].x;
+    (*out)->section.points[0].y = in[1].y;
     return;
 }
 
 // converts one cubic bezier curve to segments
 void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
+    FI_POINT_D P0 = ref;
+    FI_POINT_D P1 = in[0];
+    FI_POINT_D P2 = in[1];
+    FI_POINT_D P3 = in[2];
+
+    for (int i = 0; i < BEZIER_RES; i++) {
+        fi_add_new_seg(out, FI_SEG_LINE);
+        double t = (double)i / BEZIER_RES;
+        (*out)->last->section.points[0].x = BEZIER_POINT(P0, P1, P2, P3, x, t);
+        (*out)->last->section.points[0].y = BEZIER_POINT(P0, P1, P2, P3, y, t);
+    }
+    // fi_draw_path(*out, stdout);
     return;
 }
 
@@ -204,6 +239,7 @@ void fi_linearize(FI_PATH **in) {
         FI_SEG_TYPE type = tmp->section.type;
         FI_POINT_D *pt = tmp->section.points;
         FI_PATH *new_seg = NULL;
+        FI_PATH *next = tmp->next;
         switch (type) {
         case FI_SEG_END:
             last_ref_point.x = 0;
@@ -232,11 +268,21 @@ void fi_linearize(FI_PATH **in) {
             fi_replace_path(tmp, new_seg);
             break;
         }
-        tmp = tmp->next;
+        tmp = next;
     }
 }
 
 void fi_replace_path(FI_PATH *old, FI_PATH *new) {
+    if (old->prev != NULL) {
+        old->prev->next = new;
+        new->prev = old->prev;
+    }
+    if (old->next != NULL) {
+        old->next->prev = new->last;
+        new->last->next = old->next;
+    }
+    old->next = NULL;
+    fi_free_path(old);
     return;
 }
 
