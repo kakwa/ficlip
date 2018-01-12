@@ -183,7 +183,7 @@ void test_bezier2seg() {
     fflush(stream);
     fclose(stream);
 
-    FILE *out_file = fopen("test_1.svg", "w+");
+    FILE *out_file = fopen("svg-test-1.svg", "w+");
     fprintf(out_file, "%s", out);
     fclose(out_file);
     free(out);
