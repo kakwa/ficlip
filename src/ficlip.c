@@ -64,52 +64,157 @@ int parse_path(char *in, FI_PATH **out) {
     int i;
     char *n_start = NULL;
     size_t n_len = 0;
-    bool is_x = 1;
     int pc = 0;
 
     FI_PATH *out_current = NULL;
+    FI_SEG_TYPE type = FI_SEG_END;
 
     for (i = 0; i < strlen(in); i++) {
         switch (in[i]) {
         case ',':
         case ' ':
-            if (pc < 3 && n_start != NULL && n_len != 0) {
+            if (n_start != NULL && n_len != 0) {
                 char *tmp = calloc(1, n_len + 1);
                 strncpy(tmp, n_start, n_len);
                 double coord = atof(tmp);
                 free(tmp);
                 n_start = NULL;
                 n_len = 0;
-                if (is_x) {
-                    out_current->bound->last->section.points[pc].x = coord;
-                    is_x = 0;
-                } else {
-                    out_current->bound->last->section.points[pc].y = coord;
-                    is_x = 1;
-                    pc++;
+                switch (type) {
+                case FI_SEG_END:
+                    break;
+                case FI_SEG_MOVE:
+                    switch (pc) {
+                    case 0:
+                        out_current->bound->last->section.points[0].x = coord;
+                        pc++;
+                        break;
+                    case 1:
+                        out_current->bound->last->section.points[0].y = coord;
+                        pc = 0;
+                        break;
+                    default:
+                        fi_free_path(out_current);
+                        return 1;
+                        break;
+                    }
+                    break;
+                case FI_SEG_LINE:
+                    switch (pc) {
+                    case 0:
+                        out_current->bound->last->section.points[0].x = coord;
+                        pc++;
+                        break;
+                    case 1:
+                        out_current->bound->last->section.points[0].y = coord;
+                        pc = 0;
+                        break;
+                    default:
+                        fi_free_path(out_current);
+                        return 1;
+                        break;
+                    }
+                    break;
+                case FI_SEG_ARC:
+                    switch (pc) {
+                    case 0:
+                        out_current->bound->last->section.points[0].x = coord;
+                        pc++;
+                        break;
+                    case 1:
+                        out_current->bound->last->section.points[0].y = coord;
+                        pc++;
+                        break;
+                    case 2:
+                        out_current->bound->last->section.points[1].x = coord;
+                        pc++;
+                        break;
+                    case 3:
+                        if (coord)
+                            out_current->bound->last->section.flag |=
+                                FI_LARGE_ARC;
+                        pc++;
+                        break;
+                    case 4:
+                        if (coord)
+                            out_current->bound->last->section.flag |= FI_SWEEP;
+                        pc++;
+                        break;
+                    case 5:
+                        out_current->bound->last->section.points[2].x = coord;
+                        pc++;
+                        break;
+                    case 6:
+                        out_current->bound->last->section.points[2].y = coord;
+                        pc = 0;
+                        break;
+                    default:
+                        fi_free_path(out_current);
+                        return 1;
+                        break;
+                    }
+                    break;
+                case FI_SEG_BEZIER:
+                    switch (pc) {
+                    case 0:
+                        out_current->bound->last->section.points[0].x = coord;
+                        pc++;
+                        break;
+                    case 1:
+                        out_current->bound->last->section.points[0].y = coord;
+                        pc++;
+                        break;
+                    case 2:
+                        out_current->bound->last->section.points[1].x = coord;
+                        pc++;
+                        break;
+                    case 3:
+                        out_current->bound->last->section.points[1].y = coord;
+                        pc++;
+                        break;
+                    case 4:
+                        out_current->bound->last->section.points[2].x = coord;
+                        pc++;
+                        break;
+                    case 5:
+                        out_current->bound->last->section.points[2].y = coord;
+                        pc = 0;
+                        break;
+                    default:
+                        fi_free_path(out_current);
+                        return 1;
+                        break;
+                    }
+                    break;
                 }
             } else {
-                n_start = 0;
+                n_start = NULL;
+                n_len = 0;
             }
             break;
         case 'M':
             fi_append_new_seg(&out_current, FI_SEG_MOVE);
+            type = FI_SEG_MOVE;
             pc = 0;
             break;
         case 'L':
             fi_append_new_seg(&out_current, FI_SEG_LINE);
+            type = FI_SEG_LINE;
             pc = 0;
             break;
         case 'A':
             fi_append_new_seg(&out_current, FI_SEG_ARC);
+            type = FI_SEG_ARC;
             pc = 0;
             break;
         case 'C':
             fi_append_new_seg(&out_current, FI_SEG_BEZIER);
+            type = FI_SEG_BEZIER;
             pc = 0;
             break;
         case 'Z':
             fi_append_new_seg(&out_current, FI_SEG_END);
+            type = FI_SEG_END;
             pc = 0;
             break;
         case '-':
@@ -176,6 +281,7 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
     FI_PATH *tmp = in;
     while (tmp != NULL) {
         FI_SEG_TYPE type = tmp->section.type;
+        FI_SEG_TYPE flag = tmp->section.flag;
         FI_POINT_D *pt = tmp->section.points;
         switch (type) {
         case FI_SEG_END:
@@ -191,8 +297,18 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
             break;
         case FI_SEG_ARC:
             fprintf(out, "A ");
-            fi_point_draw_d(pt[0], out);
-            fi_point_draw_d(pt[1], out);
+            fprintf(out, "%.4f ", pt[0].x);
+            fprintf(out, "%.4f ", pt[0].y);
+            fprintf(out, "%.4f ", pt[1].x);
+            if (flag & FI_LARGE_ARC)
+                fprintf(out, "1 ");
+            else
+                fprintf(out, "0 ");
+            if (flag & FI_SWEEP)
+                fprintf(out, "1 ");
+            else
+                fprintf(out, "0 ");
+            fi_point_draw_d(pt[2], out);
             break;
         case FI_SEG_BEZIER:
             fprintf(out, "C ");
@@ -261,7 +377,7 @@ void fi_linearize(FI_PATH **in) {
             break;
         case FI_SEG_ARC:
             // FIXME
-            // It's probably false but it doesn't crash too much
+            // It's false but it doesn't crash too much
             fi_arc_to_lines(last_ref_point, pt, &new_seg);
             last_ref_point.x = pt[1].x;
             last_ref_point.y = pt[1].y;
@@ -326,6 +442,7 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out) {
     FI_PATH *out_current = NULL;
     while (tmp != NULL) {
         FI_SEG_TYPE type = tmp->section.type;
+        FI_SEG_FLAG flag = tmp->section.flag;
         FI_POINT_D *pt = tmp->section.points;
         fi_append_new_seg(&out_current, type);
         switch (type) {
@@ -340,6 +457,8 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out) {
         case FI_SEG_ARC:
             out_current->bound->last->section.points[0] = pt[0];
             out_current->bound->last->section.points[1] = pt[1];
+            out_current->bound->last->section.points[2] = pt[2];
+            out_current->bound->last->section.flag = flag;
             break;
         case FI_SEG_BEZIER:
             out_current->bound->last->section.points[0] = pt[0];
@@ -368,11 +487,8 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt) {
             tmp->section.points[0].y += pt.y;
             break;
         case FI_SEG_ARC:
-            // FIXME probably false, but good enough for now...
-            tmp->section.points[0].x += pt.x;
-            tmp->section.points[0].y += pt.y;
-            tmp->section.points[1].x += pt.x;
-            tmp->section.points[1].y += pt.y;
+            tmp->section.points[2].x += pt.x;
+            tmp->section.points[2].y += pt.y;
             break;
         case FI_SEG_BEZIER:
             tmp->section.points[0].x += pt.x;
@@ -401,7 +517,7 @@ void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
         new_seg = calloc(1, sizeof(FI_POINT_D));
         break;
     case FI_SEG_ARC:
-        new_seg = calloc(2, sizeof(FI_POINT_D));
+        new_seg = calloc(3, sizeof(FI_POINT_D));
         break;
     case FI_SEG_BEZIER:
         new_seg = calloc(3, sizeof(FI_POINT_D));

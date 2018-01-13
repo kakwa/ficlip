@@ -59,9 +59,10 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 void test_parse() {
     FI_PATH *path;
-    int ret = parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
-                         "49,10.2 C 50.2,0.567 40,10 5,5.69 Z",
-                         &path);
+    int ret = parse_path(
+        "M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
+        "C 50.2,0.567 40,10 5,5.69 Z",
+        &path);
 
     FILE *stream;
     char *out;
@@ -79,8 +80,8 @@ void test_parse() {
     fclose(stream);
 
     const char *expected = "M 0.0000,1.1000 L 10.0000,23.5432 L 0.5000,42.9870 "
-                           "A 0.4200,50.0000 49.0000,10.2000 C 50.2000,0.5670 "
-                           "40.0000,10.0000 5.0000,5.6900 Z ";
+                           "A 30.0000 50.0000 45.1000 1 1 162.5500,140.4500 C "
+                           "50.2000,0.5670 40.0000,10.0000 5.0000,5.6900 Z ";
     CU_ASSERT_STRING_EQUAL(out, expected);
     CU_ASSERT(ret == 0);
     free(out);
@@ -89,9 +90,12 @@ void test_parse() {
 
 void test_reverse() {
     FI_PATH *path;
-    int ret = parse_path("M 1,1 L 2,2 L 3,3 A 4,4 "
+    int ret = parse_path("M 1,1 L 2,2 L 3,3 A 4,4 90 0 1 "
                          "5,5 C 6,6 7,7 8,8 Z",
                          &path);
+    const char *expected = "Z C 6.0000,6.0000 7.0000,7.0000 8.0000,8.0000 A "
+                           "4.0000,4.0000 90.0000 0 1 5.0000,5.0000 L "
+                           "3.0000,3.0000 L 2.0000,2.0000 M 1.0000,1.0000 ";
 
     FI_PATH *tmp = path->bound->last;
 
@@ -106,6 +110,7 @@ void test_reverse() {
 
     while (tmp != NULL) {
         FI_SEG_TYPE type = tmp->section.type;
+        FI_SEG_TYPE flag = tmp->section.flag;
         FI_POINT_D *pt = tmp->section.points;
         switch (type) {
         case FI_SEG_END:
@@ -122,7 +127,16 @@ void test_reverse() {
         case FI_SEG_ARC:
             fprintf(out, "A ");
             fi_point_draw_d(pt[0], out);
-            fi_point_draw_d(pt[1], out);
+            fprintf(out, "%.4f ", pt[1].x);
+            if (flag & FI_LARGE_ARC)
+                fprintf(out, "1 ");
+            else
+                fprintf(out, "0 ");
+            if (flag & FI_SWEEP)
+                fprintf(out, "1 ");
+            else
+                fprintf(out, "0 ");
+            fi_point_draw_d(pt[2], out);
             break;
         case FI_SEG_BEZIER:
             fprintf(out, "C ");
@@ -136,10 +150,8 @@ void test_reverse() {
     fflush(out);
     fclose(out);
 
-    const char *expected = "Z C 6.0000,6.0000 7.0000,7.0000 8.0000,8.0000 A "
-                           "4.0000,4.0000 5.0000,5.0000 L 3.0000,3.0000 L "
-                           "2.0000,2.0000 M 1.0000,1.0000 ";
     CU_ASSERT(ret == 0);
+    // printf("\n%s\n", sout);
     CU_ASSERT_STRING_EQUAL(sout, expected);
     free(sout);
     fi_free_path(path);
@@ -258,7 +270,7 @@ void test_offset() {
         "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
         "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
         "60.47619,82.309522 C 23.434524,55.851189 79.374999,35.440477 "
-        "79.374999,35.440477 A 20,30 30,40 L 50.40,123.9 Z",
+        "79.374999,35.440477 A 20 30 90 0 1 30,40 L 50.40,123.9 Z",
         &path);
 
     FILE *stream;
@@ -276,7 +288,6 @@ void test_offset() {
     fi_draw_path(path, stream);
 
     fi_end_svg_path(stream, 1, "red", "none", NULL);
-
 
     FI_POINT_D pt;
     pt.x = 10;
@@ -301,8 +312,6 @@ void test_offset() {
     CU_ASSERT(ret == 0);
     fi_free_path(path);
 }
-
-
 
 void test_copy() {
     FI_PATH *in;

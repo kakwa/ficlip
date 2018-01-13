@@ -26,6 +26,13 @@ typedef enum {
     FI_DIFF = 0x04,
 } FI_OPS;
 
+/* List segment flags
+ */
+typedef enum {
+    FI_LARGE_ARC = 0x01,
+    FI_SWEEP = 0x02,
+} FI_SEG_FLAG;
+
 typedef enum {
     FI_CONVALL = 0x01,
 } FI_MODE;
@@ -38,6 +45,7 @@ typedef struct {
 typedef struct {
     FI_SEG_TYPE type;
     FI_POINT_D *points;
+    FI_SEG_FLAG flag;
 } FI_PATH_SECTION;
 
 typedef struct _FI_BOUND {
