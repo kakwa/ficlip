@@ -40,9 +40,14 @@ typedef struct {
     FI_POINT_D *points;
 } FI_PATH_SECTION;
 
+typedef struct _FI_BOUND {
+    struct _FI_PATH *last;
+    struct _FI_PATH *first;
+} FI_BOUND;
+
 typedef struct _FI_PATH {
     FI_PATH_SECTION section;
-    struct _FI_PATH *last;
+    struct _FI_BOUND *bound;
     struct _FI_PATH *next;
     struct _FI_PATH *prev;
 } FI_PATH;
@@ -70,7 +75,7 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt);
 
 /* replace the first point of old with the new segment
  */
-void fi_replace_path(FI_PATH *old, FI_PATH *new);
+void fi_replace_path(FI_PATH **old, FI_PATH *new);
 
 /* Convert elliptic arc to a series of segments
  */

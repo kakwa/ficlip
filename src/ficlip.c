@@ -41,6 +41,10 @@ int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode) {
 
 void fi_free_path(FI_PATH *path) {
     FI_PATH *tmp = NULL;
+    FI_BOUND *bound = NULL;
+    if (path != NULL) {
+        bound = path->bound;
+    }
     while (path != NULL) {
         tmp = path;
         path = path->next;
@@ -48,6 +52,8 @@ void fi_free_path(FI_PATH *path) {
             free(tmp->section.points);
         free(tmp);
     }
+    if (bound != NULL)
+        free(bound);
 }
 
 /* really bad parser for path declaration, but will make life far easier for
@@ -75,10 +81,10 @@ int parse_path(char *in, FI_PATH **out) {
                 n_start = NULL;
                 n_len = 0;
                 if (is_x) {
-                    out_current->last->section.points[pc].x = coord;
+                    out_current->bound->last->section.points[pc].x = coord;
                     is_x = 0;
                 } else {
-                    out_current->last->section.points[pc].y = coord;
+                    out_current->bound->last->section.points[pc].y = coord;
                     is_x = 1;
                     pc++;
                 }
@@ -217,8 +223,10 @@ void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     for (int i = 0; i < BEZIER_RES; i++) {
         fi_add_new_seg(out, FI_SEG_LINE);
         double t = (double)i / BEZIER_RES;
-        (*out)->last->section.points[0].x = BEZIER_POINT(P0, P1, P2, P3, x, t);
-        (*out)->last->section.points[0].y = BEZIER_POINT(P0, P1, P2, P3, y, t);
+        (*out)->bound->last->section.points[0].x =
+            BEZIER_POINT(P0, P1, P2, P3, x, t);
+        (*out)->bound->last->section.points[0].y =
+            BEZIER_POINT(P0, P1, P2, P3, y, t);
     }
     // fi_draw_path(*out, stdout);
     return;
@@ -229,17 +237,15 @@ void fi_linearize(FI_PATH **in) {
     FI_POINT_D last_ref_point;
     last_ref_point.x = 0;
     last_ref_point.y = 0;
-    if (tmp->section.type == FI_SEG_ARC || tmp->section.type == FI_SEG_BEZIER) {
-        // FIXME
-        // do some stuff to convert the first record
-        return;
-    }
 
     while (tmp != NULL) {
         FI_SEG_TYPE type = tmp->section.type;
         FI_POINT_D *pt = tmp->section.points;
         FI_PATH *new_seg = NULL;
         FI_PATH *next = tmp->next;
+        bool is_first = false;
+        if (tmp->prev == NULL)
+            is_first = true;
         switch (type) {
         case FI_SEG_END:
             last_ref_point.x = 0;
@@ -259,30 +265,59 @@ void fi_linearize(FI_PATH **in) {
             fi_arc_to_lines(last_ref_point, pt, &new_seg);
             last_ref_point.x = pt[1].x;
             last_ref_point.y = pt[1].y;
-            fi_replace_path(tmp, new_seg);
+            fi_replace_path(&tmp, new_seg);
             break;
         case FI_SEG_BEZIER:
             fi_bezier_to_lines(last_ref_point, pt, &new_seg);
             last_ref_point.x = pt[2].x;
             last_ref_point.y = pt[2].y;
-            fi_replace_path(tmp, new_seg);
+            fi_replace_path(&tmp, new_seg);
             break;
         }
+        if (is_first)
+            *in = tmp;
         tmp = next;
     }
 }
 
-void fi_replace_path(FI_PATH *old, FI_PATH *new) {
-    if (old->prev != NULL) {
-        old->prev->next = new;
-        new->prev = old->prev;
+void fi_replace_path(FI_PATH **old, FI_PATH *new) {
+    FI_BOUND *tmp_bound = new->bound;
+    FI_PATH *old_tmp = *old;
+
+    // old is the first point
+    if (old_tmp->prev == NULL) {
+        old_tmp->bound->first = new;
+        *old = new;
+    } else {
+        old_tmp->prev->next = new;
+        new->prev = old_tmp->prev;
     }
-    if (old->next != NULL) {
-        old->next->prev = new->last;
-        new->last->next = old->next;
+    // old is the last point
+    if (old_tmp->next == NULL) {
+        old_tmp->bound->last = new->bound->last;
+    } else {
+        old_tmp->next->prev = new->bound->last;
+        new->bound->last->next = old_tmp->next;
     }
-    old->next = NULL;
-    fi_free_path(old);
+
+    // replace the boundaries of the inserted segment
+    // by those of the host segment
+    FI_PATH *tmp = new;
+    while (tmp != tmp_bound->last) {
+        tmp->bound = old_tmp->bound;
+        tmp = tmp->next;
+    }
+    tmp->bound = old_tmp->bound;
+
+    // isolate the old point
+    old_tmp->next = NULL;
+    old_tmp->bound = NULL;
+
+    // free the old point
+    fi_free_path(old_tmp);
+
+    // free the new path bound (it's using the old one now)
+    free(tmp_bound);
     return;
 }
 
@@ -297,19 +332,19 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out) {
         case FI_SEG_END:
             break;
         case FI_SEG_MOVE:
-            out_current->last->section.points[0] = pt[0];
+            out_current->bound->last->section.points[0] = pt[0];
             break;
         case FI_SEG_LINE:
-            out_current->last->section.points[0] = pt[0];
+            out_current->bound->last->section.points[0] = pt[0];
             break;
         case FI_SEG_ARC:
-            out_current->last->section.points[0] = pt[0];
-            out_current->last->section.points[1] = pt[1];
+            out_current->bound->last->section.points[0] = pt[0];
+            out_current->bound->last->section.points[1] = pt[1];
             break;
         case FI_SEG_BEZIER:
-            out_current->last->section.points[0] = pt[0];
-            out_current->last->section.points[1] = pt[1];
-            out_current->last->section.points[2] = pt[2];
+            out_current->bound->last->section.points[0] = pt[0];
+            out_current->bound->last->section.points[1] = pt[1];
+            out_current->bound->last->section.points[2] = pt[2];
             break;
         }
         tmp = tmp->next;
@@ -370,12 +405,15 @@ void fi_add_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     }
     new_path->section.points = new_seg;
     new_path->section.type = type;
-    if (*path == NULL || (*path)->last == NULL) {
+    if (*path == NULL || (*path)->bound == NULL) {
         *path = new_path;
-        new_path->last = new_path;
+        (*path)->bound = calloc(sizeof(FI_BOUND), 1);
+        new_path->bound->last = new_path;
+        new_path->bound->first = new_path;
     } else {
-        (*path)->last->next = new_path;
-        new_path->prev = (*path)->last;
-        (*path)->last = new_path;
+        (*path)->bound->last->next = new_path;
+        new_path->prev = (*path)->bound->last;
+        (*path)->bound->last = new_path;
+        new_path->bound = (*path)->bound;
     }
 }

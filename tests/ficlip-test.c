@@ -93,7 +93,7 @@ void test_reverse() {
                          "5,5 C 6,6 7,7 8,8 Z",
                          &path);
 
-    FI_PATH *tmp = path->last;
+    FI_PATH *tmp = path->bound->last;
 
     FILE *out;
     char *sout;
@@ -145,6 +145,65 @@ void test_reverse() {
     fi_free_path(path);
 }
 
+void test_bound() {
+    FI_PATH *path;
+    int ret = parse_path(
+        "C 147.41071,143.54167 96.761905,262.98214 "
+        "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
+        "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
+        "60.47619,82.309522 C 23.434524,55.851189 79.374999,35.440477 "
+        "79.374999,35.440477 ",
+        &path);
+
+    FI_PATH *first;
+    FI_PATH *last;
+    FI_PATH *tmp;
+    FI_BOUND *bound;
+
+    // get the last point by iteration
+    tmp = path;
+    while (tmp != NULL) {
+        last = tmp; 
+        tmp = tmp->next;
+    }
+    // remember the first point
+    first = path;
+
+    tmp = path;
+    bound = path->bound;
+    while (tmp != NULL) {
+        // check that bound is always the same and points to the correct points
+        CU_ASSERT_PTR_EQUAL(tmp->bound, bound);
+        CU_ASSERT_PTR_EQUAL(tmp->bound->first, first);
+        CU_ASSERT_PTR_EQUAL(tmp->bound->last, last);
+        tmp = tmp->next;
+    }
+
+    fi_linearize(&path);
+
+    // get the last point by iteration
+    tmp = path;
+    while (tmp != NULL) {
+        last = tmp; 
+        tmp = tmp->next;
+    }
+    // remember the first point
+    first = path;
+
+    tmp = path;
+    bound = path->bound;
+    while (tmp != NULL) {
+        // check that bound is always the same and points to the correct points
+        CU_ASSERT_PTR_EQUAL(tmp->bound, bound);
+        CU_ASSERT_PTR_EQUAL(tmp->bound->first, first);
+        CU_ASSERT_PTR_EQUAL(tmp->bound->last, last);
+        tmp = tmp->next;
+    }
+
+    CU_ASSERT(ret == 0);
+    fi_free_path(path);
+}
+
 void test_bezier2seg() {
     FI_PATH *path;
     int ret = parse_path(
@@ -183,7 +242,7 @@ void test_bezier2seg() {
     fflush(stream);
     fclose(stream);
 
-    FILE *out_file = fopen("svg-test-1.svg", "w+");
+    FILE *out_file = fopen("svg-test-bezier2seg.svg", "w+");
     fprintf(out_file, "%s", out);
     fclose(out_file);
     free(out);
@@ -279,7 +338,7 @@ int main(int argc, char **argv) {
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "test of bezier curve to segment",
                              test_bezier2seg)) ||
-        (NULL == CU_add_test(pSuite, "place holder 3", test_empty))) {
+        (NULL == CU_add_test(pSuite, "test bound after convert", test_bound))) {
         CU_cleanup_registry();
         return CU_get_error();
     }
