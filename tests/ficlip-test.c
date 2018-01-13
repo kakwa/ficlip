@@ -163,7 +163,7 @@ void test_bound() {
     // get the last point by iteration
     tmp = path;
     while (tmp != NULL) {
-        last = tmp; 
+        last = tmp;
         tmp = tmp->next;
     }
     // remember the first point
@@ -184,7 +184,7 @@ void test_bound() {
     // get the last point by iteration
     tmp = path;
     while (tmp != NULL) {
-        last = tmp; 
+        last = tmp;
         tmp = tmp->next;
     }
     // remember the first point
