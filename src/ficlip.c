@@ -368,10 +368,17 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt) {
             tmp->section.points[0].y += pt.y;
             break;
         case FI_SEG_ARC:
+            // FIXME probably false, but good enough for now...
+            tmp->section.points[0].x += pt.x;
+            tmp->section.points[0].y += pt.y;
             tmp->section.points[1].x += pt.x;
             tmp->section.points[1].y += pt.y;
             break;
         case FI_SEG_BEZIER:
+            tmp->section.points[0].x += pt.x;
+            tmp->section.points[0].y += pt.y;
+            tmp->section.points[1].x += pt.x;
+            tmp->section.points[1].y += pt.y;
             tmp->section.points[2].x += pt.x;
             tmp->section.points[2].y += pt.y;
             break;

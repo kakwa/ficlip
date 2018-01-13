@@ -251,6 +251,59 @@ void test_bezier2seg() {
     fi_free_path(path);
 }
 
+void test_offset() {
+    FI_PATH *path;
+    int ret = parse_path(
+        "M 86.934523,78.529761 C 147.41071,143.54167 96.761905,262.98214 "
+        "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
+        "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
+        "60.47619,82.309522 C 23.434524,55.851189 79.374999,35.440477 "
+        "79.374999,35.440477 A 20,30 30,40 L 50.40,123.9 Z",
+        &path);
+
+    FILE *stream;
+    char *out;
+    size_t len;
+    stream = open_memstream(&out, &len);
+    if (stream == NULL) {
+        printf("Failed to allocate output stream\n");
+        return;
+    }
+
+    fi_start_svg_doc(stream, 300, 300);
+    fi_start_svg_path(stream);
+
+    fi_draw_path(path, stream);
+
+    fi_end_svg_path(stream, 1, "red", "none", NULL);
+
+
+    FI_POINT_D pt;
+    pt.x = 10;
+    pt.y = 20;
+    fi_offset_path(path, pt);
+
+    fi_start_svg_path(stream);
+    fi_draw_path(path, stream);
+    fi_end_svg_path(stream, 1, "black", "none", NULL);
+
+    fi_end_svg_doc(stream);
+    // fi_draw_path(path, stdout);
+
+    fflush(stream);
+    fclose(stream);
+
+    FILE *out_file = fopen("svg-test-offset.svg", "w+");
+    fprintf(out_file, "%s", out);
+    fclose(out_file);
+    free(out);
+
+    CU_ASSERT(ret == 0);
+    fi_free_path(path);
+}
+
+
+
 void test_copy() {
     FI_PATH *in;
     int ret = parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
@@ -323,7 +376,7 @@ int main(int argc, char **argv) {
         (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error)",
                              test_parse_fail)) ||
         (NULL == CU_add_test(pSuite, "test reverse list", test_reverse)) ||
-
+        (NULL == CU_add_test(pSuite, "test offset", test_offset)) ||
         (NULL == CU_add_test(pSuite, "fi_copy_path", test_copy))) {
         CU_cleanup_registry();
         return CU_get_error();
