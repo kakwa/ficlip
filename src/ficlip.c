@@ -93,23 +93,23 @@ int parse_path(char *in, FI_PATH **out) {
             }
             break;
         case 'M':
-            fi_add_new_seg(&out_current, FI_SEG_MOVE);
+            fi_append_new_seg(&out_current, FI_SEG_MOVE);
             pc = 0;
             break;
         case 'L':
-            fi_add_new_seg(&out_current, FI_SEG_LINE);
+            fi_append_new_seg(&out_current, FI_SEG_LINE);
             pc = 0;
             break;
         case 'A':
-            fi_add_new_seg(&out_current, FI_SEG_ARC);
+            fi_append_new_seg(&out_current, FI_SEG_ARC);
             pc = 0;
             break;
         case 'C':
-            fi_add_new_seg(&out_current, FI_SEG_BEZIER);
+            fi_append_new_seg(&out_current, FI_SEG_BEZIER);
             pc = 0;
             break;
         case 'Z':
-            fi_add_new_seg(&out_current, FI_SEG_END);
+            fi_append_new_seg(&out_current, FI_SEG_END);
             pc = 0;
             break;
         case '-':
@@ -207,7 +207,7 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
 
 // converts one arc to segments
 void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
-    fi_add_new_seg(out, FI_SEG_LINE);
+    fi_append_new_seg(out, FI_SEG_LINE);
     (*out)->section.points[0].x = in[1].x;
     (*out)->section.points[0].y = in[1].y;
     return;
@@ -221,7 +221,7 @@ void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     FI_POINT_D P3 = in[2];
 
     for (int i = 0; i < BEZIER_RES; i++) {
-        fi_add_new_seg(out, FI_SEG_LINE);
+        fi_append_new_seg(out, FI_SEG_LINE);
         double t = (double)i / BEZIER_RES;
         (*out)->bound->last->section.points[0].x =
             BEZIER_POINT(P0, P1, P2, P3, x, t);
@@ -327,7 +327,7 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out) {
     while (tmp != NULL) {
         FI_SEG_TYPE type = tmp->section.type;
         FI_POINT_D *pt = tmp->section.points;
-        fi_add_new_seg(&out_current, type);
+        fi_append_new_seg(&out_current, type);
         switch (type) {
         case FI_SEG_END:
             break;
@@ -380,7 +380,7 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt) {
     }
 }
 
-void fi_add_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
+void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     FI_PATH *new_path = calloc(1, sizeof(FI_PATH));
     FI_POINT_D *new_seg;
     switch (type) {

@@ -59,7 +59,7 @@ int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode);
 
 /* Add a new segment of a given type to a FI_PATH
  */
-void fi_add_new_seg(FI_PATH **path, FI_SEG_TYPE type);
+void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type);
 
 /* Free a FI_PATH structure
  */
