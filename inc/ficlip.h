@@ -61,7 +61,15 @@ typedef struct _FI_PATH {
     struct _FI_PATH *prev;
 } FI_PATH;
 
-/* Build the clipping path from pathes "p1" and "p2" with opetration "ops"
+typedef struct _FI_PARAM_ARC {
+    FI_POINT_D center;
+    FI_POINT_D radius;
+    double angle_s;
+    double angle_e;
+    double angle_d;
+} FI_PARAM_ARC;
+
+/* Build the clipping path from paths "p1" and "p2" with operation "ops"
  * Result in FIPATH **out, return integer error code
  */
 int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode);
@@ -82,13 +90,19 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out);
  */
 void fi_offset_path(FI_PATH *in, FI_POINT_D pt);
 
-/* replace the first point of old with the new segment
+/* Replace the first point of old with the new segment
  */
 void fi_replace_path(FI_PATH **old, FI_PATH *new);
 
+/* Convert elliptic arc from the endpoints to center parameterization
+ */
+FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D ref, FI_POINT_D *in,
+                                       FI_SEG_FLAG flag);
+
 /* Convert elliptic arc to a series of segments
  */
-void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
+void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_SEG_FLAG flag,
+                     FI_PATH **out);
 
 /* Convert a cubic bezier curve to a series of segments
  */

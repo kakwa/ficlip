@@ -359,8 +359,17 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
     }
 }
 
+// converts endpoints definition of arc to center defition for elliptic arc
+FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D ref, FI_POINT_D *in,
+                                       FI_SEG_FLAG flag){
+    FI_PARAM_ARC ret = {0};
+    return ret;
+}
+
 // converts one arc to segments
-void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
+void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_SEG_FLAG flag,
+                     FI_PATH **out) {
+    //FI_PARAM_ARC param = fi_arc_endpoint_to_center(ref, in, flag);
     fi_append_new_seg(out, FI_SEG_LINE);
     (*out)->section.points[0].x = in[1].x;
     (*out)->section.points[0].y = in[1].y;
@@ -411,6 +420,7 @@ void fi_linearize(FI_PATH **in) {
 
     while (tmp != NULL) {
         FI_SEG_TYPE type = tmp->section.type;
+        FI_SEG_FLAG flag = tmp->section.flag;
         FI_POINT_D *pt = tmp->section.points;
         FI_PATH *new_seg = NULL;
         FI_PATH *next = tmp->next;
@@ -431,9 +441,7 @@ void fi_linearize(FI_PATH **in) {
             last_ref_point.y = pt[0].y;
             break;
         case FI_SEG_ARC:
-            // FIXME
-            // It's false but it doesn't crash too much
-            fi_arc_to_lines(last_ref_point, pt, &new_seg);
+            fi_arc_to_lines(last_ref_point, pt, flag, &new_seg);
             last_ref_point.x = pt[1].x;
             last_ref_point.y = pt[1].y;
             fi_replace_path(&tmp, new_seg);
