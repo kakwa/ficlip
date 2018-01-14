@@ -369,7 +369,7 @@ void fi_cub_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     FI_POINT_D P2 = in[1];
     FI_POINT_D P3 = in[2];
 
-    for (int i = 0; i < BEZIER_RES; i++) {
+    for (int i = 0; i <= BEZIER_RES; i++) {
         fi_append_new_seg(out, FI_SEG_LINE);
         double t = (double)i / BEZIER_RES;
         (*out)->bound->last->section.points[0].x =
@@ -386,7 +386,7 @@ void fi_qua_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     FI_POINT_D P1 = in[0];
     FI_POINT_D P2 = in[1];
 
-    for (int i = 0; i < BEZIER_RES; i++) {
+    for (int i = 0; i <= BEZIER_RES; i++) {
         fi_append_new_seg(out, FI_SEG_LINE);
         double t = (double)i / BEZIER_RES;
         (*out)->bound->last->section.points[0].x =
