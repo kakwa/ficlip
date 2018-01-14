@@ -313,6 +313,76 @@ void test_quad_bezier2seg() {
     fi_free_path(path);
 }
 
+/*
+<svg width="325" height="325" xmlns="http://www.w3.org/2000/svg">
+  <path d="M80 80
+           A 45 45, 0, 0, 0, 125 125
+           L 125 80 Z" fill="green"/>
+  <path d="M230 80
+           A 45 45, 0, 1, 0, 275 125
+           L 275 80 Z" fill="red"/>
+  <path d="M80 230
+           A 45 45, 0, 0, 1, 125 275
+           L 125 230 Z" fill="purple"/>
+  <path d="M230 230
+           A 45 45, 0, 1, 1, 275 275
+           L 275 230 Z" fill="blue"/>
+</svg>
+*/
+
+void test_arc2seg() {
+    const char *p1 = "M80 80 A 45 45, 0, 0, 0, 125 125 L 125 80 Z";
+    const char *p2 = "M230 80 A 45 45, 0, 1, 0, 275 125 L 275 80 Z";
+    const char *p3 = "M80 230 A 45 45, 0, 0, 1, 125 275 L 125 230 Z";
+    const char *p4 = "M230 230 A 45 45, 0, 1, 1, 275 275 L 275 230 Z";
+    const char *p5 = "M10 315 L 110 215 A 30 50 0 0 1 162.55 162.45 L 172.55 "
+                     "152.45 A 30 50 -45 0 1 215.1 109.9 L 315 10";
+    const char *list[] = {p1, p2, p3, p4, p5};
+
+    FILE *stream;
+    char *out;
+    size_t len;
+    stream = open_memstream(&out, &len);
+    if (stream == NULL) {
+        printf("Failed to allocate output stream\n");
+        return;
+    }
+
+    fi_start_svg_doc(stream, 325, 325);
+
+    for (int i = 0; i < 5; i++) {
+        FI_PATH *path;
+
+        // int ret = parse_path("M80 80 A 45 45, 0, 0, 0, 125 125 L 125 80 Z",
+        // &path);
+        int ret = parse_path(list[i], &path);
+
+        fi_start_svg_path(stream);
+        fi_draw_path(path, stream);
+        fi_end_svg_path(stream, 2, "red", "none", NULL);
+
+        fi_linearize(&path);
+
+        fi_start_svg_path(stream);
+        fi_draw_path(path, stream);
+        fi_end_svg_path(stream, 1, "black", "none", NULL);
+
+        CU_ASSERT(ret == 0);
+        fi_free_path(path);
+    }
+
+    fi_end_svg_doc(stream);
+    // fi_draw_path(path, stdout);
+
+    fflush(stream);
+    fclose(stream);
+
+    FILE *out_file = fopen("svg-test-arc2seg.svg", "w+");
+    fprintf(out_file, "%s", out);
+    fclose(out_file);
+    free(out);
+}
+
 void test_offset() {
     FI_PATH *path;
     int ret = parse_path(
@@ -454,6 +524,9 @@ int main(int argc, char **argv) {
         (NULL == CU_add_test(pSuite,
                              "test of bezier curve to segment (quadratic)",
                              test_quad_bezier2seg)) ||
+        (NULL ==
+         CU_add_test(pSuite, "test of bezier arc to segment", test_arc2seg)) ||
+
         (NULL == CU_add_test(pSuite, "test bound after convert", test_bound))) {
         CU_cleanup_registry();
         return CU_get_error();

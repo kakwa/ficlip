@@ -33,6 +33,9 @@
  * approximate the bezier curve)
  */
 #define BEZIER_RES 100
+#define ARC_RES 100
+
+#define M_PI 3.14159265358979323846
 
 void fi_point_draw_d(FI_POINT_D pt, FILE *out) {
     fprintf(out, "%.4f,%.4f ", pt.x, pt.y);
@@ -62,7 +65,7 @@ void fi_free_path(FI_PATH *path) {
 /* really bad parser for path declaration, but will make life far easier for
  * testing
  */
-int parse_path(char *in, FI_PATH **out) {
+int parse_path(const char *in, FI_PATH **out) {
     *out = NULL;
     int i;
     char *n_start = NULL;
@@ -262,7 +265,7 @@ int parse_path(char *in, FI_PATH **out) {
         case '9':
         case '.':
             if (n_start == NULL) {
-                n_start = &in[i];
+                n_start = (char *)&in[i];
             }
             n_len++;
             break;
@@ -359,20 +362,110 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
     }
 }
 
+double fi_angle_vect(FI_POINT_D a, FI_POINT_D b) {
+    double ret;
+    double sign = 1;
+    ret = acos((a.x * b.x + a.y * b.y) / (sqrt(pow(a.x, 2) + pow(a.y, 2)) *
+                                          sqrt(pow(b.x, 2) + pow(b.y, 2))));
+    if ((a.x * b.y - a.y * b.x) < 0)
+        sign = -1;
+    return sign * ret;
+}
+
 // converts endpoints definition of arc to center defition for elliptic arc
-FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D ref, FI_POINT_D *in,
-                                       FI_SEG_FLAG flag){
+FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D s, FI_POINT_D e, FI_POINT_D r,
+                                       double phi, FI_SEG_FLAG flag) {
+    // https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+    int fa = 0;
+    if (flag & FI_LARGE_ARC)
+        fa = 1;
+    int fs = 0;
+    if (flag & FI_SWEEP)
+        fs = 1;
+
     FI_PARAM_ARC ret = {0};
+
+    FI_POINT_D p1;
+    p1.x = cos(phi) * (s.x - e.x) / 2 + sin(phi) * (s.y - e.y) / 2;
+    p1.y = -1.0 * sin(phi) * (s.x - e.x) / 2 + cos(phi) * (s.y - e.y) / 2;
+    double delta = pow(p1.x, 2) / pow(r.x, 2) + pow(p1.y, 2) / pow(r.y, 2);
+    if (delta > 1) {
+        r.x = sqrt(delta) * r.x;
+        r.y = sqrt(delta) * r.y;
+    }
+
+    double coef =
+        sqrt((pow(r.x, 2) * pow(r.y, 2) - pow(r.x, 2) * pow(p1.y, 2) -
+              pow(r.y, 2) * pow(p1.x, 2)) /
+             (pow(r.x, 2) * pow(p1.y, 2) + pow(r.y, 2) * pow(p1.x, 2)));
+    FI_POINT_D cp;
+    double sign = 1;
+    if (fa == fs)
+        sign = -1;
+    cp.x = sign * coef * r.x * p1.y / r.y;
+    cp.y = sign * coef * r.y * p1.x / r.x * -1;
+
+    ret.center.x = cos(phi) * cp.x - sin(phi) * cp.y + (s.x + e.x) / 2;
+    ret.center.y = sin(phi) * cp.x + cos(phi) * cp.y + (s.y + e.y) / 2;
+
+    FI_POINT_D t1;
+    FI_POINT_D t2;
+
+    t1.x = 1;
+    t1.y = 0;
+    t2.x = (p1.x - cp.x) / r.x;
+    t2.y = (p1.y - cp.y) / r.y;
+    ret.angle_s = fi_angle_vect(t1, t2);
+
+    t1.x = (p1.x - cp.x) / r.x;
+    t1.y = (p1.y - cp.y) / r.y;
+    t2.x = (-p1.x - cp.x) / r.x;
+    t2.y = (-p1.y - cp.y) / r.y;
+    ret.angle_d = fi_angle_vect(t1, t2);
+    if (fs == 0) {
+        if (ret.angle_d > 0) {
+            ret.angle_d -= 2 * M_PI;
+        }
+    } else {
+        if (ret.angle_d < 0) {
+            ret.angle_d += 2 * M_PI;
+        }
+    }
+
+    ret.phi = phi;
+    ret.radius.x = r.x;
+    ret.radius.y = r.y;
     return ret;
 }
 
 // converts one arc to segments
 void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_SEG_FLAG flag,
                      FI_PATH **out) {
-    //FI_PARAM_ARC param = fi_arc_endpoint_to_center(ref, in, flag);
-    fi_append_new_seg(out, FI_SEG_LINE);
-    (*out)->section.points[0].x = in[1].x;
-    (*out)->section.points[0].y = in[1].y;
+    FI_POINT_D s = ref;
+    FI_POINT_D r = in[0];
+    FI_POINT_D e = in[2];
+    double phi = in[1].x * M_PI / 180;
+    if (r.x == 0 || r.y == 0) {
+        fi_append_new_seg(out, FI_SEG_LINE);
+        (*out)->section.points[0].x = e.x;
+        (*out)->section.points[0].y = e.y;
+        return;
+    }
+    FI_PARAM_ARC param = fi_arc_endpoint_to_center(s, e, r, phi, flag);
+    double angle = 0;
+    double cos_phi = cos(param.phi);
+    double sin_phi = sin(param.phi);
+    for (int i = 0; i <= ARC_RES; i++) {
+        fi_append_new_seg(out, FI_SEG_LINE);
+        angle = param.angle_s + (double)i / (double)ARC_RES * param.angle_d;
+        FI_POINT_D t1;
+        t1.x = cos(angle) * param.radius.x;
+        t1.y = sin(angle) * param.radius.y;
+        (*out)->bound->last->section.points[0].x =
+            t1.x * cos_phi - t1.y * sin_phi + param.center.x;
+        (*out)->bound->last->section.points[0].y =
+            t1.x * sin_phi + t1.y * cos_phi + param.center.y;
+    }
     return;
 }
 

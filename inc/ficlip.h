@@ -64,8 +64,8 @@ typedef struct _FI_PATH {
 typedef struct _FI_PARAM_ARC {
     FI_POINT_D center;
     FI_POINT_D radius;
+    double phi;
     double angle_s;
-    double angle_e;
     double angle_d;
 } FI_PARAM_ARC;
 
@@ -96,8 +96,8 @@ void fi_replace_path(FI_PATH **old, FI_PATH *new);
 
 /* Convert elliptic arc from the endpoints to center parameterization
  */
-FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D ref, FI_POINT_D *in,
-                                       FI_SEG_FLAG flag);
+FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D s, FI_POINT_D e, FI_POINT_D r,
+                                       double phi, FI_SEG_FLAG flag);
 
 /* Convert elliptic arc to a series of segments
  */
@@ -120,7 +120,7 @@ void fi_linearize(FI_PATH **in);
 
 /* Rough function to parse an SVG manner path string to create a FI_PATH
  */
-int parse_path(char *in, FI_PATH **out);
+int parse_path(const char *in, FI_PATH **out);
 
 /* Draw a point (x,y format)
  */
