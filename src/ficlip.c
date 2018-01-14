@@ -37,6 +37,9 @@
 
 #define M_PI 3.14159265358979323846
 
+#define D2R M_PI / 180.0
+#define R2D 180.0 / M_PI
+
 void fi_point_draw_d(FI_POINT_D pt, FILE *out) {
     fprintf(out, "%.4f,%.4f ", pt.x, pt.y);
 }
@@ -377,6 +380,7 @@ FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D s, FI_POINT_D e, FI_POINT_D r,
                                        double phi, FI_SEG_FLAG flag) {
     // https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
     int fa = 0;
+    phi *= D2R;
     if (flag & FI_LARGE_ARC)
         fa = 1;
     int fs = 0;
@@ -432,7 +436,9 @@ FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D s, FI_POINT_D e, FI_POINT_D r,
         }
     }
 
-    ret.phi = phi;
+    ret.angle_s *= R2D;
+    ret.angle_d *= R2D;
+    ret.phi = phi * R2D;
     ret.radius.x = r.x;
     ret.radius.y = r.y;
     return ret;
@@ -444,7 +450,7 @@ void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_SEG_FLAG flag,
     FI_POINT_D s = ref;
     FI_POINT_D r = in[0];
     FI_POINT_D e = in[2];
-    double phi = in[1].x * M_PI / 180;
+    double phi = in[1].x;
     if (r.x == 0 || r.y == 0) {
         fi_append_new_seg(out, FI_SEG_LINE);
         (*out)->section.points[0].x = e.x;
@@ -453,11 +459,11 @@ void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_SEG_FLAG flag,
     }
     FI_PARAM_ARC param = fi_arc_endpoint_to_center(s, e, r, phi, flag);
     double angle = 0;
-    double cos_phi = cos(param.phi);
-    double sin_phi = sin(param.phi);
+    double cos_phi = cos(param.phi * D2R);
+    double sin_phi = sin(param.phi * D2R);
     for (int i = 0; i <= ARC_RES; i++) {
         fi_append_new_seg(out, FI_SEG_LINE);
-        angle = param.angle_s + (double)i / (double)ARC_RES * param.angle_d;
+        angle = param.angle_s * D2R + (double)i / (double)ARC_RES * param.angle_d * D2R;
         FI_POINT_D t1;
         t1.x = cos(angle) * param.radius.x;
         t1.y = sin(angle) * param.radius.y;
