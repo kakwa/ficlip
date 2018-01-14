@@ -175,7 +175,12 @@ int parse_path(char *in, FI_PATH **out) {
                         out_current->bound->last->section.points[1].y = coord;
                         pc = 0;
                         break;
+                    default:
+                        fi_free_path(out_current);
+                        return 1;
+                        break;
                     }
+                    break;
                 case FI_SEG_CUB_BEZIER:
                     switch (pc) {
                     case 0:

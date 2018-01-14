@@ -61,7 +61,7 @@ void test_parse() {
     FI_PATH *path;
     int ret = parse_path(
         "M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
-        "C 50.2,0.567 40,10 5,5.69 Z",
+        "C 50.2,0.567 40,10 5,5.69 Q 123,1.3 22.3,123 Z",
         &path);
 
     FILE *stream;
@@ -74,14 +74,11 @@ void test_parse() {
     }
 
     fi_draw_path(path, stream);
-    // fi_draw_path(path, stdout);
 
     fflush(stream);
     fclose(stream);
 
-    const char *expected = "M 0.0000,1.1000 L 10.0000,23.5432 L 0.5000,42.9870 "
-                           "A 30.0000 50.0000 45.1000 1 1 162.5500,140.4500 C "
-                           "50.2000,0.5670 40.0000,10.0000 5.0000,5.6900 Z ";
+    const char *expected = "M 0.0000,1.1000 L 10.0000,23.5432 L 0.5000,42.9870 A 30.0000 50.0000 45.1000 1 1 162.5500,140.4500 C 50.2000,0.5670 40.0000,10.0000 5.0000,5.6900 Q 123.0000,1.3000 22.3000,123.0000 Z ";
     CU_ASSERT_STRING_EQUAL(out, expected);
     CU_ASSERT(ret == 0);
     free(out);
@@ -143,7 +140,6 @@ void test_reverse() {
             fi_point_draw_d(pt[0], out);
             fi_point_draw_d(pt[1], out);
             break;
-
         case FI_SEG_CUB_BEZIER:
             fprintf(out, "C ");
             fi_point_draw_d(pt[0], out);
@@ -225,7 +221,7 @@ void test_bound() {
 void test_cub_bezier2seg() {
     FI_PATH *path;
     int ret = parse_path(
-        "M 86.934523,78.529761 C 147.41071,143.54167 96.761905,262.98214 "
+        "M 86.934523,78.529761 L 90,90 C 147.41071,143.54167 96.761905,262.98214 "
         "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
         "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
         "60.47619,82.309522 C 23.434524,55.851189 79.374999,35.440477 "
@@ -241,7 +237,7 @@ void test_cub_bezier2seg() {
         return;
     }
 
-    fi_start_svg_doc(stream, 300, 300);
+    fi_start_svg_doc(stream, 160, 250);
     fi_start_svg_path(stream);
 
     fi_draw_path(path, stream);
@@ -320,7 +316,7 @@ void test_offset() {
         "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
         "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
         "60.47619,82.309522 C 23.434524,55.851189 79.374999,35.440477 "
-        "79.374999,35.440477 A 20 30 90 0 1 30,40 L 50.40,123.9 Z",
+        "79.374999,35.440477 A 20 30 90 0 1 30,40 Q 20,9 40,100 L 50.40,123.9 Z",
         &path);
 
     FILE *stream;
@@ -332,7 +328,7 @@ void test_offset() {
         return;
     }
 
-    fi_start_svg_doc(stream, 300, 300);
+    fi_start_svg_doc(stream, 160, 250);
     fi_start_svg_path(stream);
 
     fi_draw_path(path, stream);
@@ -366,7 +362,7 @@ void test_offset() {
 void test_copy() {
     FI_PATH *in;
     int ret = parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
-                         "49,10.2 C 50.2,0.567 40,10 5,5.69 Z",
+                         "49,10.2 C 50.2,0.567 40,10 5,5.69 Q 1,1 2,2 Z",
                          &in);
     CU_ASSERT(ret == 0);
     FI_PATH *out;
