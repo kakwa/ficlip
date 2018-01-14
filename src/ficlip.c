@@ -22,9 +22,12 @@
  * c  -> coordinate (x or y)
  * t  -> parameter (must be in [0,1]
  */
-#define BEZIER_POINT(P0, P1, P2, P3, c, t)                                     \
+#define CUB_BEZIER_POINT(P0, P1, P2, P3, c, t)                                 \
     P0.c *pow((1 - t), 3) + 3 * P1.c *t *pow((1 - t), 2) +                     \
         3 * P2.c *pow(t, 2) * (1 - t) + P3.c *pow(t, 3)
+
+#define QUA_BEZIER_POINT(P0, P1, P2, c, t)                                     \
+    P0.c *pow((1 - t), 2) + 2 * t *(1 - t) * P1.c + pow(t, 2) * P2.c
 
 /* Resolution of the bezier curve transformation (number of segments used to
  * approximate the bezier curve)
@@ -154,7 +157,26 @@ int parse_path(char *in, FI_PATH **out) {
                         break;
                     }
                     break;
-                case FI_SEG_BEZIER:
+                case FI_SEG_QUA_BEZIER:
+                    switch (pc) {
+                    case 0:
+                        out_current->bound->last->section.points[0].x = coord;
+                        pc++;
+                        break;
+                    case 1:
+                        out_current->bound->last->section.points[0].y = coord;
+                        pc++;
+                        break;
+                    case 2:
+                        out_current->bound->last->section.points[1].x = coord;
+                        pc++;
+                        break;
+                    case 3:
+                        out_current->bound->last->section.points[1].y = coord;
+                        pc = 0;
+                        break;
+                    }
+                case FI_SEG_CUB_BEZIER:
                     switch (pc) {
                     case 0:
                         out_current->bound->last->section.points[0].x = coord;
@@ -207,9 +229,14 @@ int parse_path(char *in, FI_PATH **out) {
             type = FI_SEG_ARC;
             pc = 0;
             break;
+        case 'Q':
+            fi_append_new_seg(&out_current, FI_SEG_QUA_BEZIER);
+            type = FI_SEG_QUA_BEZIER;
+            pc = 0;
+            break;
         case 'C':
-            fi_append_new_seg(&out_current, FI_SEG_BEZIER);
-            type = FI_SEG_BEZIER;
+            fi_append_new_seg(&out_current, FI_SEG_CUB_BEZIER);
+            type = FI_SEG_CUB_BEZIER;
             pc = 0;
             break;
         case 'Z':
@@ -310,7 +337,13 @@ void fi_draw_path(FI_PATH *in, FILE *out) {
                 fprintf(out, "0 ");
             fi_point_draw_d(pt[2], out);
             break;
-        case FI_SEG_BEZIER:
+        case FI_SEG_QUA_BEZIER:
+            fprintf(out, "Q ");
+            fi_point_draw_d(pt[0], out);
+            fi_point_draw_d(pt[1], out);
+            break;
+
+        case FI_SEG_CUB_BEZIER:
             fprintf(out, "C ");
             fi_point_draw_d(pt[0], out);
             fi_point_draw_d(pt[1], out);
@@ -330,7 +363,7 @@ void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
 }
 
 // converts one cubic bezier curve to segments
-void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
+void fi_cub_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
     FI_POINT_D P0 = ref;
     FI_POINT_D P1 = in[0];
     FI_POINT_D P2 = in[1];
@@ -340,9 +373,26 @@ void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
         fi_append_new_seg(out, FI_SEG_LINE);
         double t = (double)i / BEZIER_RES;
         (*out)->bound->last->section.points[0].x =
-            BEZIER_POINT(P0, P1, P2, P3, x, t);
+            CUB_BEZIER_POINT(P0, P1, P2, P3, x, t);
         (*out)->bound->last->section.points[0].y =
-            BEZIER_POINT(P0, P1, P2, P3, y, t);
+            CUB_BEZIER_POINT(P0, P1, P2, P3, y, t);
+    }
+    // fi_draw_path(*out, stdout);
+    return;
+}
+
+void fi_qua_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out) {
+    FI_POINT_D P0 = ref;
+    FI_POINT_D P1 = in[0];
+    FI_POINT_D P2 = in[1];
+
+    for (int i = 0; i < BEZIER_RES; i++) {
+        fi_append_new_seg(out, FI_SEG_LINE);
+        double t = (double)i / BEZIER_RES;
+        (*out)->bound->last->section.points[0].x =
+            QUA_BEZIER_POINT(P0, P1, P2, x, t);
+        (*out)->bound->last->section.points[0].y =
+            QUA_BEZIER_POINT(P0, P1, P2, y, t);
     }
     // fi_draw_path(*out, stdout);
     return;
@@ -383,8 +433,14 @@ void fi_linearize(FI_PATH **in) {
             last_ref_point.y = pt[1].y;
             fi_replace_path(&tmp, new_seg);
             break;
-        case FI_SEG_BEZIER:
-            fi_bezier_to_lines(last_ref_point, pt, &new_seg);
+        case FI_SEG_QUA_BEZIER:
+            fi_qua_bezier_to_lines(last_ref_point, pt, &new_seg);
+            last_ref_point.x = pt[1].x;
+            last_ref_point.y = pt[1].y;
+            fi_replace_path(&tmp, new_seg);
+            break;
+        case FI_SEG_CUB_BEZIER:
+            fi_cub_bezier_to_lines(last_ref_point, pt, &new_seg);
             last_ref_point.x = pt[2].x;
             last_ref_point.y = pt[2].y;
             fi_replace_path(&tmp, new_seg);
@@ -460,7 +516,11 @@ void fi_copy_path(FI_PATH *in, FI_PATH **out) {
             out_current->bound->last->section.points[2] = pt[2];
             out_current->bound->last->section.flag = flag;
             break;
-        case FI_SEG_BEZIER:
+        case FI_SEG_QUA_BEZIER:
+            out_current->bound->last->section.points[0] = pt[0];
+            out_current->bound->last->section.points[1] = pt[1];
+            break;
+        case FI_SEG_CUB_BEZIER:
             out_current->bound->last->section.points[0] = pt[0];
             out_current->bound->last->section.points[1] = pt[1];
             out_current->bound->last->section.points[2] = pt[2];
@@ -490,7 +550,13 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt) {
             tmp->section.points[2].x += pt.x;
             tmp->section.points[2].y += pt.y;
             break;
-        case FI_SEG_BEZIER:
+        case FI_SEG_QUA_BEZIER:
+            tmp->section.points[0].x += pt.x;
+            tmp->section.points[0].y += pt.y;
+            tmp->section.points[1].x += pt.x;
+            tmp->section.points[1].y += pt.y;
+            break;
+        case FI_SEG_CUB_BEZIER:
             tmp->section.points[0].x += pt.x;
             tmp->section.points[0].y += pt.y;
             tmp->section.points[1].x += pt.x;
@@ -519,7 +585,10 @@ void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     case FI_SEG_ARC:
         new_seg = calloc(3, sizeof(FI_POINT_D));
         break;
-    case FI_SEG_BEZIER:
+    case FI_SEG_QUA_BEZIER:
+        new_seg = calloc(2, sizeof(FI_POINT_D));
+        break;
+    case FI_SEG_CUB_BEZIER:
         new_seg = calloc(3, sizeof(FI_POINT_D));
         break;
     default:

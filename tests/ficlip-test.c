@@ -138,7 +138,13 @@ void test_reverse() {
                 fprintf(out, "0 ");
             fi_point_draw_d(pt[2], out);
             break;
-        case FI_SEG_BEZIER:
+        case FI_SEG_QUA_BEZIER:
+            fprintf(out, "Q ");
+            fi_point_draw_d(pt[0], out);
+            fi_point_draw_d(pt[1], out);
+            break;
+
+        case FI_SEG_CUB_BEZIER:
             fprintf(out, "C ");
             fi_point_draw_d(pt[0], out);
             fi_point_draw_d(pt[1], out);
@@ -216,7 +222,7 @@ void test_bound() {
     fi_free_path(path);
 }
 
-void test_bezier2seg() {
+void test_cub_bezier2seg() {
     FI_PATH *path;
     int ret = parse_path(
         "M 86.934523,78.529761 C 147.41071,143.54167 96.761905,262.98214 "
@@ -254,7 +260,51 @@ void test_bezier2seg() {
     fflush(stream);
     fclose(stream);
 
-    FILE *out_file = fopen("svg-test-bezier2seg.svg", "w+");
+    FILE *out_file = fopen("svg-test-cub-bezier2seg.svg", "w+");
+    fprintf(out_file, "%s", out);
+    fclose(out_file);
+    free(out);
+
+    CU_ASSERT(ret == 0);
+    fi_free_path(path);
+}
+
+void test_quad_bezier2seg() {
+    FI_PATH *path;
+    //<svg width="190" height="160" xmlns="http://www.w3.org/2000/svg">
+    //  <path d="M10 80 Q 95 10 180 80" stroke="black" fill="transparent"/>
+    //</svg>
+    int ret = parse_path("M 10 80 Q 95 10 180 80 Z", &path);
+
+    FILE *stream;
+    char *out;
+    size_t len;
+    stream = open_memstream(&out, &len);
+    if (stream == NULL) {
+        printf("Failed to allocate output stream\n");
+        return;
+    }
+
+    fi_start_svg_doc(stream, 190, 160);
+    fi_start_svg_path(stream);
+
+    fi_draw_path(path, stream);
+
+    fi_end_svg_path(stream, 2, "red", "none", NULL);
+
+    fi_linearize(&path);
+
+    fi_start_svg_path(stream);
+    fi_draw_path(path, stream);
+    fi_end_svg_path(stream, 1, "black", "none", NULL);
+
+    fi_end_svg_doc(stream);
+    // fi_draw_path(path, stdout);
+
+    fflush(stream);
+    fclose(stream);
+
+    FILE *out_file = fopen("svg-test-quad-bezier2seg.svg", "w+");
     fprintf(out_file, "%s", out);
     fclose(out_file);
     free(out);
@@ -398,8 +448,11 @@ int main(int argc, char **argv) {
     }
 
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "test of bezier curve to segment",
-                             test_bezier2seg)) ||
+    if ((NULL == CU_add_test(pSuite, "test of bezier curve to segment (cubic)",
+                             test_cub_bezier2seg)) ||
+        (NULL == CU_add_test(pSuite,
+                             "test of bezier curve to segment (quadratic)",
+                             test_quad_bezier2seg)) ||
         (NULL == CU_add_test(pSuite, "test bound after convert", test_bound))) {
         CU_cleanup_registry();
         return CU_get_error();

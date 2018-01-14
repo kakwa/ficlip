@@ -14,7 +14,8 @@ typedef enum {
     FI_SEG_MOVE = 0x01,
     FI_SEG_LINE = 0x02,
     FI_SEG_ARC = 0x03,
-    FI_SEG_BEZIER = 0x04,
+    FI_SEG_QUA_BEZIER = 0x04,
+    FI_SEG_CUB_BEZIER = 0x05,
 } FI_SEG_TYPE;
 
 /* List of operations possible
@@ -89,9 +90,13 @@ void fi_replace_path(FI_PATH **old, FI_PATH *new);
  */
 void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
 
+/* Convert a cubic bezier curve to a series of segments
+ */
+void fi_cub_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
+
 /* Convert a quadratic bezier curve to a series of segments
  */
-void fi_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
+void fi_qua_bezier_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_PATH **out);
 
 /* Convert a "complex" path (arc and bezier) to a series of segments
  */
