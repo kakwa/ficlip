@@ -120,7 +120,7 @@ void fi_linearize(FI_PATH **in);
 
 /* Rough function to parse an SVG manner path string to create a FI_PATH
  */
-int parse_path(const char *in, FI_PATH **out);
+int fi_parse_path(const char *in, int s_in, FI_PATH **out);
 
 /* Draw a point (x,y format)
  */

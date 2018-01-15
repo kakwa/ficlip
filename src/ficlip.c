@@ -68,7 +68,7 @@ void fi_free_path(FI_PATH *path) {
 /* really bad parser for path declaration, but will make life far easier for
  * testing
  */
-int parse_path(const char *in, FI_PATH **out) {
+int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
     *out = NULL;
     int i;
     char *n_start = NULL;
@@ -78,7 +78,7 @@ int parse_path(const char *in, FI_PATH **out) {
     FI_PATH *out_current = NULL;
     FI_SEG_TYPE type = FI_SEG_END;
 
-    for (i = 0; i < strlen(in); i++) {
+    for (i = 0; i < s_in; i++) {
         switch (in[i]) {
         case ',':
         case ' ':

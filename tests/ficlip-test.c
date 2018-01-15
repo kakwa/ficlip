@@ -30,6 +30,11 @@ struct arguments {
     bool curses;
 };
 
+int _parse_path(const char *in, FI_PATH **out) {
+    int s_in = strlen(in);
+    return fi_parse_path(in, s_in, out);
+}
+
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     /* Get the input argument from argp_parse, which we
        know is a pointer to our arguments structure. */
@@ -59,7 +64,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 void test_parse() {
     FI_PATH *path;
-    int ret = parse_path(
+    int ret = _parse_path(
         "M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
         "C 50.2,0.567 40,10 5,5.69 Q 123,1.3 22.3,123 Z",
         &path);
@@ -90,9 +95,9 @@ void test_parse() {
 
 void test_reverse() {
     FI_PATH *path;
-    int ret = parse_path("M 1,1 L 2,2 L 3,3 A 4,4 90 0 1 "
-                         "5,5 C 6,6 7,7 8,8 Z",
-                         &path);
+    int ret = _parse_path("M 1,1 L 2,2 L 3,3 A 4,4 90 0 1 "
+                          "5,5 C 6,6 7,7 8,8 Z",
+                          &path);
     const char *expected = "Z C 6.0000,6.0000 7.0000,7.0000 8.0000,8.0000 A "
                            "4.0000,4.0000 90.0000 0 1 5.0000,5.0000 L "
                            "3.0000,3.0000 L 2.0000,2.0000 M 1.0000,1.0000 ";
@@ -164,7 +169,7 @@ void test_reverse() {
 
 void test_bound() {
     FI_PATH *path;
-    int ret = parse_path(
+    int ret = _parse_path(
         "C 147.41071,143.54167 96.761905,262.98214 "
         "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
         "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
@@ -223,7 +228,7 @@ void test_bound() {
 
 void test_cub_bezier2seg() {
     FI_PATH *path;
-    int ret = parse_path(
+    int ret = _parse_path(
         "M 86.934523,78.529761 L 90,90 C 147.41071,143.54167 "
         "96.761905,262.98214 "
         "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
@@ -274,7 +279,7 @@ void test_quad_bezier2seg() {
     //<svg width="190" height="160" xmlns="http://www.w3.org/2000/svg">
     //  <path d="M10 80 Q 95 10 180 80" stroke="black" fill="transparent"/>
     //</svg>
-    int ret = parse_path("M 10 80 Q 95 10 180 80 Z", &path);
+    int ret = _parse_path("M 10 80 Q 95 10 180 80 Z", &path);
 
     FILE *stream;
     char *out;
@@ -353,9 +358,9 @@ void test_arc2seg() {
     for (int i = 0; i < 5; i++) {
         FI_PATH *path;
 
-        // int ret = parse_path("M80 80 A 45 45, 0, 0, 0, 125 125 L 125 80 Z",
+        // int ret = _parse_path("M80 80 A 45 45, 0, 0, 0, 125 125 L 125 80 Z",
         // &path);
-        int ret = parse_path(list[i], &path);
+        int ret = _parse_path(list[i], &path);
 
         fi_start_svg_path(stream);
         fi_draw_path(path, stream);
@@ -385,7 +390,7 @@ void test_arc2seg() {
 
 void test_offset() {
     FI_PATH *path;
-    int ret = parse_path(
+    int ret = _parse_path(
         "M 86.934523,78.529761 C 147.41071,143.54167 96.761905,262.98214 "
         "63.499999,170 C 30.238094,77.017855 -6.047619,95.160713 "
         "30.238094,77.017855 C 66.523808,58.875001 97.517856,108.76785 "
@@ -436,9 +441,9 @@ void test_offset() {
 
 void test_copy() {
     FI_PATH *in;
-    int ret = parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
-                         "49,10.2 C 50.2,0.567 40,10 5,5.69 Q 1,1 2,2 Z",
-                         &in);
+    int ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
+                          "49,10.2 C 50.2,0.567 40,10 5,5.69 Q 1,1 2,2 Z",
+                          &in);
     CU_ASSERT(ret == 0);
     FI_PATH *out;
 
@@ -469,9 +474,9 @@ void test_copy() {
 
 void test_parse_fail() {
     FI_PATH *path;
-    int ret = parse_path("MCRAP 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
-                         "49,10.2 C 50.2,0.567 40,10 5,5.69 Z",
-                         &path);
+    int ret = _parse_path("MCRAP 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
+                          "49,10.2 C 50.2,0.567 40,10 5,5.69 Z",
+                          &path);
     CU_ASSERT(ret == 1);
     fi_free_path(path);
 }
