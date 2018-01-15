@@ -463,7 +463,8 @@ void fi_arc_to_lines(FI_POINT_D ref, FI_POINT_D *in, FI_SEG_FLAG flag,
     double sin_phi = sin(param.phi * D2R);
     for (int i = 0; i <= ARC_RES; i++) {
         fi_append_new_seg(out, FI_SEG_LINE);
-        angle = param.angle_s * D2R + (double)i / (double)ARC_RES * param.angle_d * D2R;
+        angle = param.angle_s * D2R +
+                (double)i / (double)ARC_RES * param.angle_d * D2R;
         FI_POINT_D t1;
         t1.x = cos(angle) * param.radius.x;
         t1.y = sin(angle) * param.radius.y;
