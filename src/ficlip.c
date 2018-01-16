@@ -80,6 +80,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
 
     for (i = 0; i < s_in; i++) {
         switch (in[i]) {
+        case '\n':
         case ',':
         case ' ':
             if (n_start != NULL && n_len != 0) {
@@ -601,8 +602,16 @@ void fi_replace_path(FI_PATH **old, FI_PATH *new) {
     // free the old point
     fi_free_path(old_tmp);
 
+    new->bound->n_total += tmp_bound->n_total - 1;
+    new->bound->n_end += tmp_bound->n_end - 1;
+    new->bound->n_move += tmp_bound->n_move - 1;
+    new->bound->n_line += tmp_bound->n_line - 1;
+    new->bound->n_arc += tmp_bound->n_arc - 1;
+    new->bound->n_qbez += tmp_bound->n_qbez - 1;
+    new->bound->n_cbez += tmp_bound->n_cbez - 1;
     // free the new path bound (it's using the old one now)
     free(tmp_bound);
+
     return;
 }
 
@@ -685,31 +694,6 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt) {
 void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     FI_PATH *new_path = calloc(1, sizeof(FI_PATH));
     FI_POINT_D *new_seg;
-    switch (type) {
-    case FI_SEG_END:
-        new_seg = NULL;
-        break;
-    case FI_SEG_MOVE:
-        new_seg = calloc(1, sizeof(FI_POINT_D));
-        break;
-    case FI_SEG_LINE:
-        new_seg = calloc(1, sizeof(FI_POINT_D));
-        break;
-    case FI_SEG_ARC:
-        new_seg = calloc(3, sizeof(FI_POINT_D));
-        break;
-    case FI_SEG_QUA_BEZIER:
-        new_seg = calloc(2, sizeof(FI_POINT_D));
-        break;
-    case FI_SEG_CUB_BEZIER:
-        new_seg = calloc(3, sizeof(FI_POINT_D));
-        break;
-    default:
-        new_seg = NULL;
-        break;
-    }
-    new_path->section.points = new_seg;
-    new_path->section.type = type;
     if (*path == NULL || (*path)->bound == NULL) {
         *path = new_path;
         (*path)->bound = calloc(sizeof(FI_BOUND), 1);
@@ -721,4 +705,36 @@ void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
         (*path)->bound->last = new_path;
         new_path->bound = (*path)->bound;
     }
+    new_path->bound->n_total += 1;
+    switch (type) {
+    case FI_SEG_END:
+        new_seg = NULL;
+        new_path->bound->n_end += 1;
+        break;
+    case FI_SEG_MOVE:
+        new_seg = calloc(1, sizeof(FI_POINT_D));
+        new_path->bound->n_move += 1;
+        break;
+    case FI_SEG_LINE:
+        new_seg = calloc(1, sizeof(FI_POINT_D));
+        new_path->bound->n_line += 1;
+        break;
+    case FI_SEG_ARC:
+        new_seg = calloc(3, sizeof(FI_POINT_D));
+        new_path->bound->n_arc += 1;
+        break;
+    case FI_SEG_QUA_BEZIER:
+        new_seg = calloc(2, sizeof(FI_POINT_D));
+        new_path->bound->n_qbez += 1;
+        break;
+    case FI_SEG_CUB_BEZIER:
+        new_seg = calloc(3, sizeof(FI_POINT_D));
+        new_path->bound->n_cbez += 1;
+        break;
+    default:
+        new_seg = NULL;
+        break;
+    }
+    new_path->section.points = new_seg;
+    new_path->section.type = type;
 }
