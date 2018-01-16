@@ -52,6 +52,13 @@ typedef struct {
 typedef struct _FI_BOUND {
     struct _FI_PATH *last;
     struct _FI_PATH *first;
+    int n_total;
+    int n_end;
+    int n_move;
+    int n_line;
+    int n_arc;
+    int n_qbez;
+    int n_cbez;
 } FI_BOUND;
 
 typedef struct _FI_PATH {
