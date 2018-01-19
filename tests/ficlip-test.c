@@ -481,6 +481,29 @@ void test_parse_fail() {
     fi_free_path(path);
 }
 
+void test_parse_fail_to_long() {
+    FI_PATH *path;
+    int ret = _parse_path(
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        "CCCCCCCCCCCCCCCCCCCCCC",
+        &path);
+    CU_ASSERT(ret == 2);
+    fi_free_path(path);
+}
+
 void test_empty() {
     return;
 }
@@ -508,8 +531,11 @@ int main(int argc, char **argv) {
 
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "test of fi_draw_path()", test_parse)) ||
-        (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error)",
+        (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error wrong)",
                              test_parse_fail)) ||
+        (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error too long)",
+                             test_parse_fail_to_long)) ||
+
         (NULL == CU_add_test(pSuite, "test reverse list", test_reverse)) ||
         (NULL == CU_add_test(pSuite, "test offset", test_offset)) ||
         (NULL == CU_add_test(pSuite, "fi_copy_path", test_copy))) {
