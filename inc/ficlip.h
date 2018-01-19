@@ -5,6 +5,15 @@
  * Copyright 2017, Pierre-Francois Carpentier
  */
 
+/* Default maximum length of a path
+ */
+#define DEFAULT_MAX_PATH_LENGTH 1000
+
+/* Error codes
+ */
+#define ERR_PARSINGFAIL 0x01
+#define ERR_PATHTOLONG 0x02
+
 #include <stdio.h>
 
 /* Type of segments
@@ -49,21 +58,22 @@ typedef struct {
     FI_SEG_FLAG flag;
 } FI_PATH_SECTION;
 
-typedef struct _FI_BOUND {
+typedef struct _FI_META {
     struct _FI_PATH *last;
     struct _FI_PATH *first;
     int n_total;
+    int n_max;
     int n_end;
     int n_move;
     int n_line;
     int n_arc;
     int n_qbez;
     int n_cbez;
-} FI_BOUND;
+} FI_META;
 
 typedef struct _FI_PATH {
     FI_PATH_SECTION section;
-    struct _FI_BOUND *bound;
+    struct _FI_META *meta;
     struct _FI_PATH *next;
     struct _FI_PATH *prev;
 } FI_PATH;
@@ -83,7 +93,7 @@ int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode);
 
 /* Add a new segment of a given type to a FI_PATH
  */
-void fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type);
+int fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type);
 
 /* Free a FI_PATH structure
  */

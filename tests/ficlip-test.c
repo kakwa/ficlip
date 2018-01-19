@@ -102,7 +102,7 @@ void test_reverse() {
                            "4.0000,4.0000 90.0000 0 1 5.0000,5.0000 L "
                            "3.0000,3.0000 L 2.0000,2.0000 M 1.0000,1.0000 ";
 
-    FI_PATH *tmp = path->bound->last;
+    FI_PATH *tmp = path->meta->last;
 
     FILE *out;
     char *sout;
@@ -167,7 +167,7 @@ void test_reverse() {
     fi_free_path(path);
 }
 
-void test_bound() {
+void test_meta() {
     FI_PATH *path;
     int ret = _parse_path(
         "C 147.41071,143.54167 96.761905,262.98214 "
@@ -180,7 +180,7 @@ void test_bound() {
     FI_PATH *first;
     FI_PATH *last;
     FI_PATH *tmp;
-    FI_BOUND *bound;
+    FI_META *meta;
 
     // get the last point by iteration
     tmp = path;
@@ -192,12 +192,12 @@ void test_bound() {
     first = path;
 
     tmp = path;
-    bound = path->bound;
+    meta = path->meta;
     while (tmp != NULL) {
-        // check that bound is always the same and points to the correct points
-        CU_ASSERT_PTR_EQUAL(tmp->bound, bound);
-        CU_ASSERT_PTR_EQUAL(tmp->bound->first, first);
-        CU_ASSERT_PTR_EQUAL(tmp->bound->last, last);
+        // check that meta is always the same and points to the correct points
+        CU_ASSERT_PTR_EQUAL(tmp->meta, meta);
+        CU_ASSERT_PTR_EQUAL(tmp->meta->first, first);
+        CU_ASSERT_PTR_EQUAL(tmp->meta->last, last);
         tmp = tmp->next;
     }
 
@@ -213,12 +213,12 @@ void test_bound() {
     first = path;
 
     tmp = path;
-    bound = path->bound;
+    meta = path->meta;
     while (tmp != NULL) {
-        // check that bound is always the same and points to the correct points
-        CU_ASSERT_PTR_EQUAL(tmp->bound, bound);
-        CU_ASSERT_PTR_EQUAL(tmp->bound->first, first);
-        CU_ASSERT_PTR_EQUAL(tmp->bound->last, last);
+        // check that meta is always the same and points to the correct points
+        CU_ASSERT_PTR_EQUAL(tmp->meta, meta);
+        CU_ASSERT_PTR_EQUAL(tmp->meta->first, first);
+        CU_ASSERT_PTR_EQUAL(tmp->meta->last, last);
         tmp = tmp->next;
     }
 
@@ -532,7 +532,7 @@ int main(int argc, char **argv) {
         (NULL ==
          CU_add_test(pSuite, "test of bezier arc to segment", test_arc2seg)) ||
 
-        (NULL == CU_add_test(pSuite, "test bound after convert", test_bound))) {
+        (NULL == CU_add_test(pSuite, "test meta after convert", test_meta))) {
         CU_cleanup_registry();
         return CU_get_error();
     }
