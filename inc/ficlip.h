@@ -19,21 +19,21 @@
 /* Type of segments
  */
 typedef enum {
-    FI_SEG_END = 0x00,
-    FI_SEG_MOVE = 0x01,
-    FI_SEG_LINE = 0x02,
-    FI_SEG_ARC = 0x03,
-    FI_SEG_QUA_BEZIER = 0x04,
-    FI_SEG_CUB_BEZIER = 0x05,
+    FI_SEG_END = 0x00,        // End and close the path
+    FI_SEG_MOVE = 0x01,       // Move cursor without tracing
+    FI_SEG_LINE = 0x02,       // Line to target point
+    FI_SEG_ARC = 0x03,        // Elliptic arc to point
+    FI_SEG_QUA_BEZIER = 0x04, // Quadratic Bezier curve to point
+    FI_SEG_CUB_BEZIER = 0x05, // Cubic bezier curve to point
 } FI_SEG_TYPE;
 
 /* List of operations possible
  */
 typedef enum {
-    FI_AND = 0x01,
-    FI_OR = 0x02,
-    FI_XOR = 0x03,
-    FI_DIFF = 0x04,
+    FI_AND = 0x01,  // and operation on shapes
+    FI_OR = 0x02,   // or operation on shapes
+    FI_XOR = 0x03,  // xor operation on shapes
+    FI_DIFF = 0x04, // diff operation on shapes
 } FI_OPS;
 
 /* List segment flags
@@ -43,21 +43,29 @@ typedef enum {
     FI_SWEEP = 0x02,
 } FI_SEG_FLAG;
 
+/* flag list for conversion mode
+ */
 typedef enum {
-    FI_CONVALL = 0x01,
+    FI_CONVALL = 0x01, // convert all curves to segments
 } FI_MODE;
 
+/* definition of a point (x, y)
+ */
 typedef struct {
     double x;
     double y;
 } FI_POINT_D;
 
+/* Definition of a bezier curve/elliptic arc/segment portion of a curve
+ */
 typedef struct {
     FI_SEG_TYPE type;
     FI_POINT_D *points;
     FI_SEG_FLAG flag;
 } FI_PATH_SECTION;
 
+/* Wrapper structure for a path
+ */
 typedef struct _FI_META {
     struct _FI_PATH *last;
     struct _FI_PATH *first;
@@ -71,6 +79,8 @@ typedef struct _FI_META {
     int n_cbez;
 } FI_META;
 
+/* actual path definition
+ */
 typedef struct _FI_PATH {
     FI_PATH_SECTION section;
     struct _FI_META *meta;
@@ -78,6 +88,8 @@ typedef struct _FI_PATH {
     struct _FI_PATH *prev;
 } FI_PATH;
 
+/* parameterize structure for defining an elliptic arc
+ */
 typedef struct _FI_PARAM_ARC {
     FI_POINT_D center;
     FI_POINT_D radius;
@@ -149,22 +161,18 @@ void fi_point_draw_d(FI_POINT_D pt, FILE *out);
 void fi_draw_path(FI_PATH *in, FILE *out);
 
 /* start an svg document
- *
  */
 void fi_start_svg_doc(FILE *out, double width, double height);
 
 /* end an svg document
- *
  */
 void fi_end_svg_doc(FILE *out);
 
 /* start an svg path
- *
  */
 void fi_start_svg_path(FILE *out);
 
 /* end an svg path
- *
  */
 void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
                      char *fill_color, char *fill_opacity);
