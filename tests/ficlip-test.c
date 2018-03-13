@@ -472,6 +472,54 @@ void test_copy() {
     fi_free_path(in);
 }
 
+void test_sort() {
+    FI_PATH *in_1;
+    FI_PATH *in_2;
+    int ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 L 0.42,50 "
+                          "L 50.2,0.567 L 1,1 Z",
+                          &in_1);
+    CU_ASSERT(ret == 0);
+    ret = _parse_path("M 1.5,1.9 L 12.0,21.5432 L 19.5,42.987 L 0.32,50 "
+                      "L 50.2,0.567 L 0.7,1 Z",
+                      &in_2);
+    CU_ASSERT(ret == 0);
+    FI_PATH **sorted;
+    size_t len_sorted = 0;
+    FI_PATH *table_path_in[2] = {0};
+    table_path_in[0] = in_1;
+    table_path_in[1] = in_2;
+    fi_sort_path(table_path_in, 2, &sorted, &len_sorted);
+    float prev = -42.0;
+    float cur = 0;
+    for (int i = 0; i < len_sorted; i++) {
+        switch (sorted[i]->section.type) {
+        case FI_SEG_END:
+            break;
+        case FI_SEG_MOVE:
+            cur = sorted[i]->section.points[0].x;
+            CU_ASSERT(cur >= prev);
+            prev = cur;
+            break;
+        case FI_SEG_LINE:
+            cur = sorted[i]->section.points[0].x;
+            CU_ASSERT(cur >= prev);
+            prev = cur;
+            break;
+        case FI_SEG_ARC:
+            break;
+        case FI_SEG_QUA_BEZIER:
+            break;
+        case FI_SEG_CUB_BEZIER:
+            break;
+        default:
+            break;
+        }
+    }
+    free(sorted);
+    fi_free_path(in_1);
+    fi_free_path(in_2);
+}
+
 void test_parse_fail() {
     FI_PATH *path;
     int ret = _parse_path("MCRAP 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 0.42,50 "
@@ -535,7 +583,6 @@ int main(int argc, char **argv) {
                              test_parse_fail)) ||
         (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error too long)",
                              test_parse_fail_to_long)) ||
-
         (NULL == CU_add_test(pSuite, "test reverse list", test_reverse)) ||
         (NULL == CU_add_test(pSuite, "test offset", test_offset)) ||
         (NULL == CU_add_test(pSuite, "fi_copy_path", test_copy))) {
@@ -570,7 +617,7 @@ int main(int argc, char **argv) {
     }
 
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "place holder 4", test_empty)) ||
+    if ((NULL == CU_add_test(pSuite, "test sorted", test_sort)) ||
         (NULL == CU_add_test(pSuite, "place holder 5", test_empty))) {
         CU_cleanup_registry();
         return CU_get_error();

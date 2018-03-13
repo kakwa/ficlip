@@ -743,3 +743,44 @@ int fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     new_path->section.type = type;
     return 0;
 }
+
+int fi_compare_x(const void *in_1, const void *in_2) {
+    FI_PATH **seg_1 = (FI_PATH **)in_1;
+    FI_PATH **seg_2 = (FI_PATH **)in_2;
+    FI_SEG_TYPE type = (*seg_1)->section.type;
+    int ret = 0;
+    if (*seg_1 == NULL || (type != FI_SEG_LINE && type != FI_SEG_MOVE))
+        return 1;
+    type = (*seg_2)->section.type;
+    if (*seg_2 == NULL || (type != FI_SEG_LINE && type != FI_SEG_MOVE))
+        return -1;
+
+    if ((*seg_1)->section.points[0].x < (*seg_2)->section.points[0].x)
+        ret = -1;
+    if ((*seg_1)->section.points[0].x == (*seg_2)->section.points[0].x)
+        ret = 0;
+    if ((*seg_1)->section.points[0].x > (*seg_2)->section.points[0].x)
+        ret = 1;
+    return ret;
+}
+
+void fi_sort_path(FI_PATH **table_path_in, size_t table_len, FI_PATH ***out,
+                  size_t *len_out) {
+    int len_seg = 0;
+    for (int i = 0; i < table_len; i++) {
+        len_seg += table_path_in[i]->meta->n_total;
+    }
+    FI_PATH **tmp_out = calloc(len_seg, sizeof(FI_PATH *));
+    size_t len_tmp_out = 0;
+    for (int i = 0; i < table_len; i++) {
+        FI_PATH *tmp = table_path_in[i];
+        while (tmp != NULL) {
+            tmp_out[len_tmp_out] = tmp;
+            tmp = tmp->next;
+            len_tmp_out++;
+        }
+    }
+    qsort(tmp_out, len_tmp_out, sizeof(FI_PATH *), fi_compare_x);
+    *out = tmp_out;
+    *len_out = len_tmp_out;
+}

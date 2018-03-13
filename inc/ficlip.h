@@ -177,4 +177,9 @@ void fi_start_svg_path(FILE *out);
 void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
                      char *fill_color, char *fill_opacity);
 
+/* sort an array of PATH into an array of segments
+ */
+void fi_sort_path(FI_PATH **table_path_in, size_t table_len, FI_PATH ***out,
+                  size_t *len_out);
+
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
