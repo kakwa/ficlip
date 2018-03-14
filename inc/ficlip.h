@@ -62,6 +62,7 @@ typedef struct {
     FI_SEG_TYPE type;
     FI_POINT_D *points;
     FI_SEG_FLAG flag;
+    int n_point;
 } FI_PATH_SECTION;
 
 /* Wrapper structure for a path

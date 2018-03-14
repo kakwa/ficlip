@@ -37,7 +37,9 @@
 
 #define M_PI 3.14159265358979323846
 
+// Degree to radian conversion ratio
 #define D2R M_PI / 180.0
+// Radian to degree conversion ratio
 #define R2D 180.0 / M_PI
 
 void fi_point_draw_d(FI_POINT_D pt, FILE *out) {
@@ -693,6 +695,7 @@ void fi_offset_path(FI_PATH *in, FI_POINT_D pt) {
 int fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     FI_PATH *new_path = calloc(1, sizeof(FI_PATH));
     FI_POINT_D *new_seg;
+    int n_point = 0;
     if (*path == NULL || (*path)->meta == NULL) {
         *path = new_path;
         (*path)->meta = calloc(sizeof(FI_META), 1);
@@ -714,26 +717,32 @@ int fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     case FI_SEG_END:
         new_seg = NULL;
         new_path->meta->n_end += 1;
+        n_point = 0;
         break;
     case FI_SEG_MOVE:
         new_seg = calloc(1, sizeof(FI_POINT_D));
         new_path->meta->n_move += 1;
+        n_point = 1;
         break;
     case FI_SEG_LINE:
         new_seg = calloc(1, sizeof(FI_POINT_D));
         new_path->meta->n_line += 1;
+        n_point = 1;
         break;
     case FI_SEG_ARC:
         new_seg = calloc(3, sizeof(FI_POINT_D));
         new_path->meta->n_arc += 1;
+        n_point = 3;
         break;
     case FI_SEG_QUA_BEZIER:
         new_seg = calloc(2, sizeof(FI_POINT_D));
         new_path->meta->n_qbez += 1;
+        n_point = 2;
         break;
     case FI_SEG_CUB_BEZIER:
         new_seg = calloc(3, sizeof(FI_POINT_D));
         new_path->meta->n_cbez += 1;
+        n_point = 3;
         break;
     default:
         new_seg = NULL;
@@ -741,25 +750,31 @@ int fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     }
     new_path->section.points = new_seg;
     new_path->section.type = type;
+    new_path->section.n_point = n_point;
     return 0;
 }
 
 int fi_compare_x(const void *in_1, const void *in_2) {
     FI_PATH **seg_1 = (FI_PATH **)in_1;
     FI_PATH **seg_2 = (FI_PATH **)in_2;
-    FI_SEG_TYPE type = (*seg_1)->section.type;
+    int n_point_1 = (*seg_1)->section.n_point;
+    int n_point_2 = (*seg_2)->section.n_point;
     int ret = 0;
-    if (*seg_1 == NULL || (type != FI_SEG_LINE && type != FI_SEG_MOVE))
+
+    // if it's a segment with no points (like Z)
+    if (n_point_1 == 0)
         return 1;
-    type = (*seg_2)->section.type;
-    if (*seg_2 == NULL || (type != FI_SEG_LINE && type != FI_SEG_MOVE))
+    if (n_point_2 == 0)
         return -1;
 
-    if ((*seg_1)->section.points[0].x < (*seg_2)->section.points[0].x)
+    // last point index
+    int l1 = n_point_1 - 1;
+    int l2 = n_point_2 - 1;
+    if ((*seg_1)->section.points[l1].x < (*seg_2)->section.points[l2].x)
         ret = -1;
-    if ((*seg_1)->section.points[0].x == (*seg_2)->section.points[0].x)
+    if ((*seg_1)->section.points[l1].x == (*seg_2)->section.points[l2].x)
         ret = 0;
-    if ((*seg_1)->section.points[0].x > (*seg_2)->section.points[0].x)
+    if ((*seg_1)->section.points[l1].x > (*seg_2)->section.points[l2].x)
         ret = 1;
     return ret;
 }
