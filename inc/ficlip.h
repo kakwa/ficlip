@@ -15,6 +15,7 @@
 #define ERR_PATHTOLONG 0x02
 
 #include <stdio.h>
+#include <stdbool.h>
 
 /* Type of segments
  */
@@ -98,6 +99,29 @@ typedef struct _FI_PARAM_ARC {
     double angle_s;
     double angle_d;
 } FI_PARAM_ARC;
+
+typedef enum {
+    FI_SUBJECT,
+    FI_CLIPPED,
+} FI_POLYGON_TYPE;
+
+typedef enum {
+    FI_NON_CONTRIBUTIN,
+    FI_SAME_TRANSITION,
+    FI_DIFFERENT_TRANSITION,
+} FI_EDGETYPE;
+
+typedef struct _FI_SWEEPEVENT {
+    FI_POINT_D point;
+    FI_POLYGON_TYPE polygon_type;
+    FI_EDGETYPE type;
+    bool in_out;
+    bool inside;
+    bool is_left_event;
+    struct _FI_SWEEPEVENT *other;
+    struct _FI_SWEEPEVENT *next;
+    struct _FI_SWEEPEVENT *prev;
+} FI_SWEEPEVENT;
 
 /* Build the clipping path from paths "p1" and "p2" with operation "ops"
  * Result in FIPATH **out, return integer error code
