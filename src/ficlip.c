@@ -107,7 +107,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
                         pc = 0;
                         break;
                     default:
-                        ret = ERR_PARSINGFAIL;
+                        ret = ERR_PARSING_FAIL;
                         break;
                     }
                     break;
@@ -122,7 +122,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
                         pc = 0;
                         break;
                     default:
-                        ret = ERR_PARSINGFAIL;
+                        ret = ERR_PARSING_FAIL;
                         break;
                     }
                     break;
@@ -160,7 +160,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
                         pc = 0;
                         break;
                     default:
-                        ret = ERR_PARSINGFAIL;
+                        ret = ERR_PARSING_FAIL;
                         break;
                     }
                     break;
@@ -183,7 +183,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
                         pc = 0;
                         break;
                     default:
-                        ret = ERR_PARSINGFAIL;
+                        ret = ERR_PARSING_FAIL;
                         break;
                     }
                     break;
@@ -214,7 +214,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
                         pc = 0;
                         break;
                     default:
-                        ret = ERR_PARSINGFAIL;
+                        ret = ERR_PARSING_FAIL;
                         break;
                     }
                     break;
@@ -272,7 +272,7 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
             n_len++;
             break;
         default:
-            ret = ERR_PARSINGFAIL;
+            ret = ERR_PARSING_FAIL;
             break;
         }
         if (ret) {
@@ -705,7 +705,7 @@ int fi_append_new_seg(FI_PATH **path, FI_SEG_TYPE type) {
     } else {
         if ((*path)->meta->n_total >= (*path)->meta->n_max) {
             free(new_path);
-            return ERR_PATHTOLONG;
+            return ERR_PATH_TOO_LONG;
         }
         (*path)->meta->last->next = new_path;
         new_path->prev = (*path)->meta->last;
@@ -819,6 +819,41 @@ bool fi_is_left_event(FI_SWEEPEVENT *event) {
     return (cmp < 0);
 }
 
+int fi_validate_path(FI_PATH *path) {
+    bool in_path = false;
+    int counter = 0;
+    FI_PATH *tmp = path;
+    while (tmp != NULL) {
+        FI_SEG_TYPE type = tmp->section.type;
+        switch (type) {
+        case FI_SEG_END:
+            if (!in_path)
+                return ERR_PATH_NO_MZ;
+            if (counter < 2)
+                return ERR_PATH_SECTION_TOO_SHORT;
+            in_path = false;
+            break;
+        case FI_SEG_MOVE:
+            if (in_path)
+                return false;
+            in_path = true;
+            break;
+        case FI_SEG_LINE:
+        case FI_SEG_ARC:
+        case FI_SEG_QUA_BEZIER:
+        case FI_SEG_CUB_BEZIER:
+            if (!in_path)
+                return ERR_PATH_NO_MZ;
+            counter++;
+        }
+        tmp = tmp->next;
+    }
+    if (in_path)
+        return ERR_PATH_NO_MZ;
+    else
+        return 0;
+}
+
 void fi_insert_events(FI_PATH *path, FI_SWEEPEVENT **event_queue,
                       FI_POLYGON_TYPE type) {
     FI_PATH *tmp = path;
@@ -882,9 +917,9 @@ void fi_insert_events(FI_PATH *path, FI_SWEEPEVENT **event_queue,
     *event_queue = ret;
 }
 
-void fi_sort_events(FI_SWEEPEVENT **event_queue){
-  //TODO
-  return;
+void fi_sort_events(FI_SWEEPEVENT **event_queue) {
+    // TODO
+    return;
 }
 
 void fi_create_sweepevent_queue(FI_PATH *path_subject, FI_PATH *path_clip,

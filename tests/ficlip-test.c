@@ -93,6 +93,46 @@ void test_parse() {
     fi_free_path(path);
 }
 
+void test_validate() {
+    FI_PATH *path;
+    int err;
+    int ret = _parse_path(
+        "L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
+        "C 50.2,0.567 40,10 5,5.69 Q 123,1.3 22.3,123 Z",
+        &path);
+
+    CU_ASSERT(ret == 0);
+    err = fi_validate_path(path);
+    CU_ASSERT(err == ERR_PATH_NO_MZ);
+    fi_free_path(path);
+
+    ret = _parse_path(
+        "M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
+        "C 50.2,0.567 40,10 5,5.69 Q 123,1.3 22.3,123 ",
+        &path);
+
+    CU_ASSERT(ret == 0);
+    err = fi_validate_path(path);
+    CU_ASSERT(err == ERR_PATH_NO_MZ);
+    fi_free_path(path);
+
+    ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 Z", &path);
+
+    CU_ASSERT(ret == 0);
+    err = fi_validate_path(path);
+    CU_ASSERT(err == ERR_PATH_SECTION_TOO_SHORT);
+    fi_free_path(path);
+
+    ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 L 123,1.3 Z M 0.0,1.1 L "
+                      "10.0,23.5432 L 123,1.3 Z",
+                      &path);
+
+    CU_ASSERT(ret == 0);
+    err = fi_validate_path(path);
+    CU_ASSERT(err == 0);
+    fi_free_path(path);
+}
+
 void test_reverse() {
     FI_PATH *path;
     int ret = _parse_path("M 1,1 L 2,2 L 3,3 A 4,4 90 0 1 "
@@ -584,6 +624,8 @@ int main(int argc, char **argv) {
         (NULL == CU_add_test(pSuite, "test of fi_draw_path() (error too long)",
                              test_parse_fail_to_long)) ||
         (NULL == CU_add_test(pSuite, "test reverse list", test_reverse)) ||
+        (NULL ==
+         CU_add_test(pSuite, "test validation of path", test_validate)) ||
         (NULL == CU_add_test(pSuite, "test offset", test_offset)) ||
         (NULL == CU_add_test(pSuite, "fi_copy_path", test_copy))) {
         CU_cleanup_registry();

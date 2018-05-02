@@ -11,8 +11,10 @@
 
 /* Error codes
  */
-#define ERR_PARSINGFAIL 0x01
-#define ERR_PATHTOLONG 0x02
+#define ERR_PARSING_FAIL 0x01
+#define ERR_PATH_TOO_LONG 0x02
+#define ERR_PATH_NO_MZ 0x03
+#define ERR_PATH_SECTION_TOO_SHORT 0x04
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -206,5 +208,20 @@ void fi_end_svg_path(FILE *out, double stroke_width, char *stroke_color,
  */
 void fi_sort_path(FI_PATH **table_path_in, size_t table_len, FI_PATH ***out,
                   size_t *len_out);
+
+/* Validate that the path is correctly defined (M <stuff> Z section and at least
+ * 2 intermediate points (to make at least a triangle
+ */
+int fi_validate_path(FI_PATH *path);
+
+/* insert a path in the event queue
+ */
+void fi_insert_events(FI_PATH *path, FI_SWEEPEVENT **event_queue,
+                      FI_POLYGON_TYPE type);
+
+/* Create the event queue that will be consumed by the clipping algorithm
+ */
+void fi_create_sweepevent_queue(FI_PATH *path_subject, FI_PATH *path_clip,
+                                FI_SWEEPEVENT **event_queue);
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
