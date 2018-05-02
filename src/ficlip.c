@@ -835,7 +835,7 @@ int fi_validate_path(FI_PATH *path) {
             break;
         case FI_SEG_MOVE:
             if (in_path)
-                return false;
+                return ERR_PATH_NO_MZ;
             in_path = true;
             break;
         case FI_SEG_LINE:

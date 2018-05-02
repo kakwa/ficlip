@@ -96,6 +96,8 @@ void test_parse() {
 void test_validate() {
     FI_PATH *path;
     int err;
+
+    // MISSING "M" at the begining
     int ret = _parse_path(
         "L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
         "C 50.2,0.567 40,10 5,5.69 Q 123,1.3 22.3,123 Z",
@@ -106,6 +108,7 @@ void test_validate() {
     CU_ASSERT(err == ERR_PATH_NO_MZ);
     fi_free_path(path);
 
+    // MISSING "Z" at the end
     ret = _parse_path(
         "M 0.0,1.1 L 10.0,23.5432 L 0.5,42.987 A 30 50 45.1 1 1 162.55 140.45 "
         "C 50.2,0.567 40,10 5,5.69 Q 123,1.3 22.3,123 ",
@@ -116,6 +119,7 @@ void test_validate() {
     CU_ASSERT(err == ERR_PATH_NO_MZ);
     fi_free_path(path);
 
+    // SECTION OF THE PATH TOO SHORT (NEED AT LEAST 1 M AND 2 L FOR A POLYGON)
     ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 Z", &path);
 
     CU_ASSERT(ret == 0);
@@ -123,6 +127,27 @@ void test_validate() {
     CU_ASSERT(err == ERR_PATH_SECTION_TOO_SHORT);
     fi_free_path(path);
 
+    // DOUBLE Z
+    ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 L 123,1.3 Z Z M 0.0,1.1 L "
+                      "10.0,23.5432 L 123,1.3 Z",
+                      &path);
+
+    CU_ASSERT(ret == 0);
+    err = fi_validate_path(path);
+    CU_ASSERT(err == ERR_PATH_NO_MZ);
+    fi_free_path(path);
+
+    // 2 M IN A SECTION
+    ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 L 123,1.3 M 0.0,1.1 L "
+                      "10.0,23.5432 L 123,1.3 Z",
+                      &path);
+
+    CU_ASSERT(ret == 0);
+    err = fi_validate_path(path);
+    CU_ASSERT(err == ERR_PATH_NO_MZ);
+    fi_free_path(path);
+
+    // VALID PATH WITH 2 SECTIONS
     ret = _parse_path("M 0.0,1.1 L 10.0,23.5432 L 123,1.3 Z M 0.0,1.1 L "
                       "10.0,23.5432 L 123,1.3 Z",
                       &path);
