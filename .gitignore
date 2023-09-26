@@ -46,6 +46,7 @@ CUnitAutomated-Results.xml
 # coverage results
 coverage
 coverage.info
+coverage.base
 
 
 # test result file
