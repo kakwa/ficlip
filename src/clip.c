@@ -13,7 +13,7 @@
 #include "ficlip.h"
 #include "ficlip-private.h"
 
-int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out, FI_MODE mode) {
+int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out) {
     return 0;
 }
 

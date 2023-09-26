@@ -69,6 +69,7 @@ LINK_DIRECTORIES(
 # headers directories
 include_directories(
   ./inc/
+  ./src/
   /usr/include/
   /sw/include/
 )
