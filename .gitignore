@@ -45,6 +45,8 @@ CUnitAutomated-Results.xml
 
 # coverage results
 coverage
+coverage.info
+
 
 # test result file
 *.svg

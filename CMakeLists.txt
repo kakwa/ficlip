@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.12)
 
 project (ficlip)
 
@@ -21,18 +21,19 @@ set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DFI_VERSION='\"${ficlip_VERSION}\"'")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFI_VERSION='\"${ficlip_VERSION}\"'")
 
 # Options
-option(GCOV      "compile with gcov support"    OFF)
-option(UNITTEST  "compile unit tests"           OFF)
-option(STATIC    "compile statically"           OFF)
+option(DEBUG "compile with debug symbol" OFF)
+option(STATIC "compile statically" OFF)
+option(COVERAGE "Enable code coverage" OFF)
+option(BUILD_DOC "Build documentation" OFF)
+option(BUILD_TESTS "Build tests" OFF)
 
-if(GCOV)
-  SET(UNITTEST ON)
-  SET(CMAKE_BUILD_TYPE "Debug")
-endif(GCOV)
+if(COVERAGE)
+  SET(BUILD_TESTS ON)
+endif(COVERAGE)
 
-if(UNITTEST)
+if(BUILD_TESTS)
   find_package(Cunit REQUIRED)
-endif(UNITTEST)
+endif(BUILD_TESTS)
 
 if(INDEX)
   set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DRECORD_INDEX='true'")
@@ -84,7 +85,7 @@ set_target_properties(ficlip
   SOVERSION ${ficlip_VERSION_MAJOR}
 )
 
-if(GCOV)
+if(COVERAGE)
   include(CodeCoverage)
   setup_target_for_coverage(NAME coverage
     EXECUTABLE ficlip-test
@@ -92,16 +93,16 @@ if(GCOV)
     )
   SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
   SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-endif(GCOV)
+endif(COVERAGE)
 
-if(UNITTEST)
+if(BUILD_TESTS)
   add_executable(ficlip-test tests/ficlip-test.c)
 
   target_link_libraries(ficlip-test
     ficlip
     ${CUNIT_LIBRARY}
   )
-endif(UNITTEST)
+endif(BUILD_TESTS)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall")
