@@ -917,8 +917,70 @@ void fi_insert_events(FI_PATH *path, FI_SWEEPEVENT **event_queue,
     *event_queue = ret;
 }
 
+FI_SWEEPEVENT *_find_middle_event(FI_SWEEPEVENT *start, FI_SWEEPEVENT *end) {
+    FI_SWEEPEVENT *slow = start;
+    FI_SWEEPEVENT *fast = start;
+    while (fast != NULL) {
+        fast = fast->next;
+        if (fast != end) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+    return slow;
+}
+
+FI_SWEEPEVENT **_fi_merge_events(FI_SWEEPEVENT *s1, FI_SWEEPEVENT *e1, FI_SWEEPEVENT *s2, FI_SWEEPEVENT *e2){
+  FI_SWEEPEVENT *tmp1 = s1;
+  FI_SWEEPEVENT *tmp2 = s2;
+  while ((tmp1 != e1) && (tmp2 != e2)){
+    if(fi_compare_point(tmp1->point, tmp2->point) > 0){
+      FI_SWEEPEVENT *tmp = tmp1->next;
+      tmp1->next;
+    } else {
+      FI_SWEEPEVENT *tmp = tmp2->next;
+      tmp2->next;
+    }
+
+  }
+  FI_SWEEPEVENT **ret = calloc(2, sizeof(FI_SWEEPEVENT *));
+  if(fi_compare_point(s1->point, s2->point) < 0){
+    ret[0] = s2;
+  } else {
+    ret[0] = s1;
+  }
+  if(fi_compare_point(tmp1->point, tmp2->point) < 0){
+    ret[1] = tmp2;
+  } else {
+    ret[1] = tmp1;
+  }
+  return ret;
+}
+
+FI_SWEEPEVENT **_fi_sort_events(FI_SWEEPEVENT *start, FI_SWEEPEVENT *end) {
+    if (start == end){
+        FI_SWEEPEVENT **ret = calloc(2, sizeof(FI_SWEEPEVENT *));
+        ret[0] = start;
+        ret[1] = start;
+        return ret;
+    }
+    else {
+        FI_SWEEPEVENT *middle = _find_middle_event(start, end);
+        FI_SWEEPEVENT **s1 = _fi_sort_events(start, middle);
+        FI_SWEEPEVENT **s2 = _fi_sort_events(middle, end);
+        FI_SWEEPEVENT **ret =  _fi_merge_events(
+            s1[0], s1[1], s2[0], s2[1]
+            );
+        free(s1);
+        free(s2);
+        return ret;
+    }
+}
+
 void fi_sort_events(FI_SWEEPEVENT **event_queue) {
-    // TODO
+    FI_SWEEPEVENT **tmp = _fi_sort_events(*event_queue, NULL);
+    *event_queue = tmp[0];
+    free(tmp);
     return;
 }
 
