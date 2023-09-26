@@ -63,6 +63,14 @@ typedef struct {
 } FI_POINT_D;
 
 /**
+ * @brief List of segment flags.
+ */
+typedef enum {
+    FI_LARGE_ARC = 0x01, /**< Large arc flag. */
+    FI_SWEEP = 0x02,     /**< Sweep flag. */
+} FI_SEG_FLAG;
+
+/**
  * @brief Definition of a bezier curve/elliptic arc/segment portion of a curve.
  */
 typedef struct {

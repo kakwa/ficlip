@@ -61,14 +61,6 @@ typedef struct _FI_SWEEPEVENT {
     struct _FI_SWEEPEVENT *prev;
 } FI_SWEEPEVENT;
 
-/**
- * @brief List of segment flags.
- */
-typedef enum {
-    FI_LARGE_ARC = 0x01, /**< Large arc flag. */
-    FI_SWEEP = 0x02,     /**< Sweep flag. */
-} FI_SEG_FLAG;
-
 /* Convert elliptic arc from the endpoints to center parameterization
  */
 FI_PARAM_ARC fi_arc_endpoint_to_center(FI_POINT_D s, FI_POINT_D e, FI_POINT_D r,
