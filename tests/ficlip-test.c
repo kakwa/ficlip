@@ -9,7 +9,6 @@
 #include <CUnit/Basic.h>
 #include <CUnit/Console.h>
 #include <CUnit/Automated.h>
-#include <CUnit/CUCurses.h>
 
 static char args_doc[] = "[-b] [-a] [-i] [-c]";
 
@@ -19,7 +18,6 @@ static struct argp_option options[] = {
     {"basic", 'b', 0, 0, "Run in basic mode (default)"},
     {"automated", 'a', 0, 0, "Run in automated mode (with xml)"},
     {"interactive", 'i', 0, 0, "Run in interactive mode (console)"},
-    {"curses", 'c', 0, 0, "Run in interactive mode (ncurses)"},
     {0}};
 
 struct arguments {
@@ -27,7 +25,6 @@ struct arguments {
     bool basic;
     bool automated;
     bool interactive;
-    bool curses;
 };
 
 int _parse_path(const char *in, FI_PATH **out) {
@@ -49,9 +46,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'i':
         arguments->interactive = 1;
-        break;
-    case 'c':
-        arguments->curses = 1;
         break;
     default:
         return ARGP_ERR_UNKNOWN;
@@ -625,7 +619,7 @@ int main(int argc, char **argv) {
     struct arguments args = {0};
     argp_parse(&argp, argc, argv, 0, 0, &args);
 
-    if (!(args.basic || args.automated || args.interactive || args.curses))
+    if (!(args.basic || args.automated || args.interactive))
         args.basic = 1;
 
     CU_pSuite pSuite = NULL;
@@ -698,8 +692,6 @@ int main(int argc, char **argv) {
         CU_automated_run_tests();
     if (args.interactive)
         CU_console_run_tests();
-    if (args.curses)
-        CU_curses_run_tests();
 
     // int ret = CU_get_error();
     int ret = CU_get_number_of_failures();

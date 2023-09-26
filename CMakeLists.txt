@@ -32,7 +32,7 @@ if(COVERAGE)
 endif(COVERAGE)
 
 if(BUILD_TESTS)
-  find_package(Cunit REQUIRED)
+    find_library(CUNIT_LIBRARY cunit)
 endif(BUILD_TESTS)
 
 if(INDEX)
@@ -86,6 +86,7 @@ set_target_properties(ficlip
 )
 
 if(COVERAGE)
+  set(CMAKE_BUILD_TYPE Debug)
   include(CodeCoverage)
   setup_target_for_coverage(NAME coverage
     EXECUTABLE ficlip-test

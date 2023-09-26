@@ -21,7 +21,7 @@ jobs:
     - name: Install packages
       run: |
         sudo apt update
-        sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev doxygen libdatetime-perl libcunit1-ncurses-dev
+        sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev doxygen libdatetime-perl
     - name: Configure CMake
       run: cmake -DBUILD_DOC=ON .
     - name: Get Doxygen awesome CSS
