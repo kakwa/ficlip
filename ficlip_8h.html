@@ -104,9 +104,9 @@ $(document).ready(function(){initNavTree('ficlip_8h.html',''); initResizable(); 
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a200c623aa653e35eb6db48c5597f7c9e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ficlip_8h.html#a200c623aa653e35eb6db48c5597f7c9e">ficlip</a> (<a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *p1, <a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *p2, <a class="el" href="ficlip_8h.html#a831788e2311a470020958937c259fbd5">FI_OPS</a> ops, <a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> **out)</td></tr>
-<tr class="memdesc:a200c623aa653e35eb6db48c5597f7c9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build the clipping path from paths "p1" and "p2" with operation "ops". Result in FIPATH **out, return integer error code.  <a href="ficlip_8h.html#a200c623aa653e35eb6db48c5597f7c9e">More...</a><br /></td></tr>
-<tr class="separator:a200c623aa653e35eb6db48c5597f7c9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afab2fc99a2d60961ea12b913563c26bb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ficlip_8h.html#afab2fc99a2d60961ea12b913563c26bb">fi_clip</a> (<a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *p1, <a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *p2, <a class="el" href="ficlip_8h.html#a831788e2311a470020958937c259fbd5">FI_OPS</a> ops, <a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> **out)</td></tr>
+<tr class="memdesc:afab2fc99a2d60961ea12b913563c26bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build the clipping path from paths "p1" and "p2" with operation "ops". Result in FIPATH **out, return integer error code.  <a href="ficlip_8h.html#afab2fc99a2d60961ea12b913563c26bb">More...</a><br /></td></tr>
+<tr class="separator:afab2fc99a2d60961ea12b913563c26bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad25adae97b7dd58fa6feed1cd30dd61b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ficlip_8h.html#ad25adae97b7dd58fa6feed1cd30dd61b">fi_append_new_seg</a> (<a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> **path, <a class="el" href="ficlip_8h.html#a59e8f00f94ee76db53ddf647b1f33585">FI_SEG_TYPE</a> type)</td></tr>
 <tr class="memdesc:ad25adae97b7dd58fa6feed1cd30dd61b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a new segment of a given type to a FI_PATH.  <a href="ficlip_8h.html#ad25adae97b7dd58fa6feed1cd30dd61b">More...</a><br /></td></tr>
 <tr class="separator:ad25adae97b7dd58fa6feed1cd30dd61b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -234,6 +234,58 @@ Enumerations</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">path</td><td>Pointer to the path. </td></tr>
     <tr><td class="paramname">type</td><td>Type of the segment to be added.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Integer error code (0 if successful). </dd></dl>
+
+</div>
+</div>
+<a id="afab2fc99a2d60961ea12b913563c26bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afab2fc99a2d60961ea12b913563c26bb">&#9670;&nbsp;</a></span>fi_clip()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fi_clip </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *&#160;</td>
+          <td class="paramname"><em>p1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *&#160;</td>
+          <td class="paramname"><em>p2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="ficlip_8h.html#a831788e2311a470020958937c259fbd5">FI_OPS</a>&#160;</td>
+          <td class="paramname"><em>ops</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> **&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Build the clipping path from paths "p1" and "p2" with operation "ops". Result in FIPATH **out, return integer error code. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p1</td><td>The first path. </td></tr>
+    <tr><td class="paramname">p2</td><td>The second path. </td></tr>
+    <tr><td class="paramname">ops</td><td>The operation to be performed (AND, OR, XOR, DIFF). </td></tr>
+    <tr><td class="paramname">out</td><td>Pointer to the result path.</td></tr>
   </table>
   </dd>
 </dl>
@@ -442,58 +494,6 @@ Enumerations</h2></td></tr>
     <tr><td class="paramname">in</td><td>The input path string. </td></tr>
     <tr><td class="paramname">s_in</td><td>Length of the input string. </td></tr>
     <tr><td class="paramname">out</td><td>Pointer to the created path.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Integer error code (0 if successful). </dd></dl>
-
-</div>
-</div>
-<a id="a200c623aa653e35eb6db48c5597f7c9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a200c623aa653e35eb6db48c5597f7c9e">&#9670;&nbsp;</a></span>ficlip()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int ficlip </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *&#160;</td>
-          <td class="paramname"><em>p1</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> *&#160;</td>
-          <td class="paramname"><em>p2</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="ficlip_8h.html#a831788e2311a470020958937c259fbd5">FI_OPS</a>&#160;</td>
-          <td class="paramname"><em>ops</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="ficlip_8h.html#aae772c729a301cdeda16a38200268b2e">FI_PATH</a> **&#160;</td>
-          <td class="paramname"><em>out</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Build the clipping path from paths "p1" and "p2" with operation "ops". Result in FIPATH **out, return integer error code. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">p1</td><td>The first path. </td></tr>
-    <tr><td class="paramname">p2</td><td>The second path. </td></tr>
-    <tr><td class="paramname">ops</td><td>The operation to be performed (AND, OR, XOR, DIFF). </td></tr>
-    <tr><td class="paramname">out</td><td>Pointer to the result path.</td></tr>
   </table>
   </dd>
 </dl>
