@@ -236,9 +236,10 @@ int fi_parse_path(const char *in, int s_in, FI_PATH **out) {
 void fi_start_svg_doc(FILE *out, double width, double height) {
     fprintf(out,
             "<?xml version=\"1.0\"  encoding=\"UTF-8\" standalone=\"no\"?>\n");
-    fprintf(out, "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" "
-                 "xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"%.4f\" "
-                 "height=\"%.4f\">\n",
+    fprintf(out,
+            "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" "
+            "xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"%.4f\" "
+            "height=\"%.4f\">\n",
             width, height);
     return;
 }

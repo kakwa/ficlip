@@ -13,7 +13,7 @@
         3 * P2.c *pow(t, 2) * (1 - t) + P3.c *pow(t, 3)
 
 #define QUA_BEZIER_POINT(P0, P1, P2, c, t)                                     \
-    P0.c *pow((1 - t), 2) + 2 * t *(1 - t) * P1.c + pow(t, 2) * P2.c
+    P0.c *pow((1 - t), 2) + 2 * t * (1 - t) * P1.c + pow(t, 2) * P2.c
 
 /* Resolution of the bezier curve transformation (number of segments used to
  * approximate the bezier curve)
@@ -27,7 +27,6 @@
 #define D2R M_PI / 180.0
 // Radian to degree conversion ratio
 #define R2D 180.0 / M_PI
-
 
 /* parameterize structure for defining an elliptic arc
  */
@@ -61,6 +60,14 @@ typedef struct _FI_SWEEPEVENT {
     struct _FI_SWEEPEVENT *next;
     struct _FI_SWEEPEVENT *prev;
 } FI_SWEEPEVENT;
+
+/**
+ * @brief List of segment flags.
+ */
+typedef enum {
+    FI_LARGE_ARC = 0x01, /**< Large arc flag. */
+    FI_SWEEP = 0x02,     /**< Sweep flag. */
+} FI_SEG_FLAG;
 
 /* Convert elliptic arc from the endpoints to center parameterization
  */

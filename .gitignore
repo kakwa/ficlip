@@ -48,6 +48,12 @@ coverage
 coverage.info
 coverage.base
 
+# doc/doxygen files
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+Doxyfile
+docs/doxygen-awesome-css/
+docs/html/
 
 # test result file
 *.svg
