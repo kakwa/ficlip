@@ -117,7 +117,7 @@ typedef struct _FI_PATH {
  *
  * @return     Integer error code (0 if successful).
  */
-int ficlip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out);
+int fi_clip(FI_PATH *p1, FI_PATH *p2, FI_OPS ops, FI_PATH **out);
 
 /**
  * @brief Add a new segment of a given type to a FI_PATH.
